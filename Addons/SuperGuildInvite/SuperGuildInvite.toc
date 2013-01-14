@@ -1,0 +1,13 @@
+## Interface: 50100
+## Author: Janniie - Stormreaver EU
+## Title: |cffffff00<|r|cff16ABB5SGI|r|cffffff00>|r |cff16ABB5SuperGuildInvite|r
+## Notes: Version 6.2
+## Version: 6.2
+## SavedVariables: SGI_DATA
+## SavedVariablesPerCharacter: SGI_BACKUP
+
+libs\GuildShield.lua
+libs\Alerts.lua
+libs\PMG.lua
+locale\localization.lua
+SuperGuildInvite.lua
