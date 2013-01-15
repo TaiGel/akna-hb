@@ -429,10 +429,12 @@ namespace ObjectGatherer {
                     }
                     return;
                 }
-                ObjectToFind = o;
                 LocationId = WoWMovement.CalculatePointFrom(o.Location, 3);
                 _interactway = 2;
-                OGlog("Moving to {0}, to pickup {1}.", o.Location, o.Name);
+                if (ObjectToFind != o) {
+                    OGlog("Moving to {0}, to pickup {1}.", o.Location, o.Name);
+                    ObjectToFind = o;
+                }
                 CheckPointTimer.Restart();
             }
             #endregion
