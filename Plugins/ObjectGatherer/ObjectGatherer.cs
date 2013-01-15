@@ -109,7 +109,12 @@ namespace ObjectGatherer {
             BotEvents.OnBotStopped += BotEvent_OnBotStopped;
         }
         #endregion
-        
+
+        #region Load GUI
+        public override bool WantButton { get { return true; } }
+        public override void OnButtonPress() { var GUI = new ObjectGatherer_Gui(); GUI.ShowDialog(); }
+        #endregion
+
         #region Pulse
         public override void Pulse() {
             if (!_initialized) return;
