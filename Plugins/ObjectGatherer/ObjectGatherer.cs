@@ -97,6 +97,7 @@ namespace ObjectGatherer {
         public static WoWUnit NPCToFind;
         public static List<WoWGameObject> ObjList;
         public static List<WoWUnit> NPCList;
+        public static uint[] Filterlist;
         private static int _interactway;
         private static readonly Stopwatch MyTimer = new Stopwatch();
         private static readonly Stopwatch CheckPointTimer = new Stopwatch();
@@ -110,6 +111,7 @@ namespace ObjectGatherer {
             if (_initialized) return;
             _initialized = true;
             OGlog("Version: " + Version + " Loaded.");
+            Filterlist = UpdateFilterList();
             BotEvents.OnBotStarted += BotEvent_OnBotStarted;
             BotEvents.OnBotStopped += BotEvent_OnBotStopped;
         }
@@ -147,26 +149,33 @@ namespace ObjectGatherer {
             LocationId = WoWPoint.Empty;
         }
         #endregion
-
+        
         #region FilterList
-        private static readonly uint[] Filterlist = {
-            #region Ancient Guo-Lai Cache
+
+        #region Ancient Guo-Lai Cache
+        private static readonly uint[] Filter_AGLC = {
             214388, // Ancient Guo-Lai Cache
-            #endregion
+        };
+        #endregion
 
-            #region Dark Soil
+        #region Dark Soil
+        private static readonly uint[] Filter_DS = {
             210565, // Dark Soil
-            #endregion
+        };
+        #endregion
 
-            #region Gold Coins
+        #region Gold Coins
+        private static readonly uint[] Filter_GC = {
             186633, // Gold Coins
             186634, // Gold Coins
             210894, // Gold Coins
             214458, // Gold Coins
             214985, // Gold Coins
-            #endregion
+        };
+        #endregion
 
-            #region Is Another Man's Treasure
+        #region Is Another Man's Treasure
+        private static readonly uint[] Filter_IAMT = {
             213363, // Wodin's Mantid Shanker
             213364, // Ancient Pandaren Mining Pick
             213366, // Ancient Pandaren Tea Pot (Grey trash worth 100G)
@@ -201,25 +210,33 @@ namespace ObjectGatherer {
             214340, // Boat-Building Instructions (Grey trash worth 10G)
             214438, // Ancient Mogu Tablet (Grey trash worth 95G)
             214439, // Barrel of Banana Infused Rum (Cooking Recipy and Rum)
-            #endregion
+        };
+        #endregion
 
-            #region Is Another Man's Treasure NPC
+        #region Is Another Man's Treasure NPC
+        private static readonly uint[] Filter_IAMTN = {
             65552, // Glinting Rapana Whelk
             64272, // Jade Warrior Statue
             64004, // Ghostly Pandaren Fisherman
             64191, // Ghostly Pandaren Craftsman
             64227, // Frozen Trail Packer
-            #endregion
+        };
+        #endregion
 
-            #region Netherwing Egg
+        #region Netherwing Egg
+        private static readonly uint[] Filter_NE = {
             185915, // Netherwing Egg
-            #endregion
+        };
+        #endregion
 
-            #region Onyx Egg
+        #region Onyx Egg
+        private static readonly uint[] Filter_OE = {
             214945, // Onyx Egg
-            #endregion
+        };
+        #endregion
 
-            #region Treasure Chests
+        #region Treasure Chests
+        private static readonly uint[] Filter_TC = {
             176944, // Old Treasure Chest (Scholomance Instance)
             179697, // Arena Treasure Chest (STV Arena)
             203090, // Sunken Treaure Chest
@@ -274,17 +291,32 @@ namespace ObjectGatherer {
             214407, // Mo-Mo's Treasure Chest (Contains ~ 9G)
             214337, // Stash of Gems (few green uncut MoP gems and ~ 7G)
             214337, // Offering of Rememberance (Contains ~ 30G and debuff turns you grey)
-            #endregion
+        };
+        #endregion
 
-            #region Quests
+        #region Quests
+        private static readonly uint[] Filter_Q = {
             #region Paying Tribute (Niuzao Food Supply)
             212131, // Niuzao Food Supply
             212132, // Niuzao Food Supply
             212133, // Niuzao Food Supply
             #endregion
-
-            #endregion
         };
+        #endregion
+
+        public static uint[] UpdateFilterList() {
+            var tmpList = new List<uint>();
+            if (ObjectGatherer_Settings.Instance.AGLC_CB) { tmpList.AddRange(Filter_AGLC); }
+            if (ObjectGatherer_Settings.Instance.DS_CB) { tmpList.AddRange(Filter_DS); }
+            if (ObjectGatherer_Settings.Instance.GC_CB) { tmpList.AddRange(Filter_GC); }
+            if (ObjectGatherer_Settings.Instance.IAMT_CB) { tmpList.AddRange(Filter_IAMT); }
+            if (ObjectGatherer_Settings.Instance.IAMTN_CB) { tmpList.AddRange(Filter_IAMTN); }
+            if (ObjectGatherer_Settings.Instance.NE_CB) { tmpList.AddRange(Filter_NE); }
+            if (ObjectGatherer_Settings.Instance.OE_CB) { tmpList.AddRange(Filter_OE); }
+            if (ObjectGatherer_Settings.Instance.TC_CB) { tmpList.AddRange(Filter_TC); }
+            if (ObjectGatherer_Settings.Instance.Q_CB) { tmpList.AddRange(Filter_Q); }
+            return (tmpList.ToArray());
+        }
         #endregion
 
         #region InteractWithObject

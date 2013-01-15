@@ -37,6 +37,7 @@ namespace ObjectGatherer
             ObjectGatherer_Settings.Instance.Save();
             ObjectGatherer.OGlog("Settings Saved");
             Close();
+            ObjectGatherer.Filterlist = ObjectGatherer.UpdateFilterList();
         }
         #endregion
 
