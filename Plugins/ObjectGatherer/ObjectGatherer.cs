@@ -58,6 +58,11 @@
  * NPC interact is now working, had to do a lua script for it to work correct but atleast it's working now.
  * Updated MoveTo to include both Navigator and Flightor to improve the logic abit more.
  * Added aditional checks to clear the waypoint if we are dead, ghost or in combat, hopefully it works now.
+ * 
+ * Ver 1.30
+ * GUI has been added. (However the settings doesn't change anything yet :P)
+ * Added a new cathegory for Quests and added a few items (if it's any quest items you want me to add please comment)
+ * Tweaks in the move to logic and more checks to clear waypoint if it takes too long etc.
  */
 #endregion
 
