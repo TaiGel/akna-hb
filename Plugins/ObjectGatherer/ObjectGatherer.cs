@@ -63,6 +63,9 @@
  * GUI has been added. (However the settings doesn't change anything yet :P)
  * Added a new cathegory for Quests and added a few items (if it's any quest items you want me to add please comment)
  * Tweaks in the move to logic and more checks to clear waypoint if it takes too long etc.
+ * 
+ * Ver 1.31
+ * All the settings in the GUI is finaly working, now you can choose if you want the plugin to not search for a itemgroup.
  */
 #endregion
 
@@ -89,7 +92,7 @@ namespace ObjectGatherer {
         #region Variables
         public override string Name { get { return "ObjectGatherer"; } }
         public override string Author { get { return "AknA"; } }
-        public override Version Version { get { return new Version(1, 3, 0); } }
+        public override Version Version { get { return new Version(1, 3, 1); } }
         public static void OGlog(string message, params object[] args) { Logging.Write(Colors.DeepSkyBlue, "[ObjectGatherer]: " + message, args); }
         public static LocalPlayer Me { get { return StyxWoW.Me; } }
         public static WoWPoint LocationId = WoWPoint.Empty;
@@ -110,7 +113,7 @@ namespace ObjectGatherer {
         public override void Initialize() {
             if (_initialized) return;
             _initialized = true;
-            OGlog("Version: " + Version + " Loaded.");
+            OGlog("Version " + Version + " Loaded.");
             Filterlist = UpdateFilterList();
             BotEvents.OnBotStarted += BotEvent_OnBotStarted;
             BotEvents.OnBotStopped += BotEvent_OnBotStopped;
