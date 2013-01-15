@@ -43,7 +43,7 @@ namespace ObjectGatherer
         #region Links Settings
         private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            System.Diagnostics.Process.Start("http://www.thebuddyforum.com/members/120897-akna.html");
+            System.Diagnostics.Process.Start("http://www.thebuddyforum.com/honorbuddy-forum/plugins/uncataloged/99699-plugin-objectgatherer.html");
             linkLabel1.LinkVisited = true;
         }
         private void linkLabel2_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
