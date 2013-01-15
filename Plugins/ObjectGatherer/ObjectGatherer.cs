@@ -398,10 +398,12 @@ namespace ObjectGatherer {
                     LocationId = WoWPoint.Empty;
                     return;
                 }
-                NPCToFind = u;
                 LocationId = WoWMovement.CalculatePointFrom(u.Location, 3);
                 _interactway = 1;
-                OGlog("Moving to {0}, to interact with {1}.", u.Location, u.Name);
+                if (NPCToFind != u) {
+                    OGlog("Moving to {0}, to interact with {1}.", u.Location, u.Name);
+                    NPCToFind = u;
+                }
                 CheckPointTimer.Restart();
             }
             #endregion
