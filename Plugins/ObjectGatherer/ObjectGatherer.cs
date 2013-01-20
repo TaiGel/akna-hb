@@ -6,6 +6,7 @@
  * a whole new plugin.
  * 
  * Special thanks to chinajade and Inrego for your endless help with my silly questions.
+ * And to BarryDurex for the avoid logics.
  * 
  * Ver 0.53 Beta
  * First official Beta testing stage.
@@ -307,6 +308,7 @@ namespace ObjectGatherer {
         };
         #endregion
 
+        #region UpdateFilterList()
         public static uint[] UpdateFilterList() {
             var tmpList = new List<uint>();
             if (ObjectGatherer_Settings.Instance.AGLC_CB) { tmpList.AddRange(Filter_AGLC); }
@@ -320,6 +322,8 @@ namespace ObjectGatherer {
             if (ObjectGatherer_Settings.Instance.Q_CB) { tmpList.AddRange(Filter_Q); }
             return (tmpList.ToArray());
         }
+        #endregion
+
         #endregion
 
         #region InteractWithObject
