@@ -66,5 +66,10 @@ namespace ObjectGatherer
         [Setting, DefaultValue(true)]
         public bool Q_CB { get; set; }
         #endregion
+        
+        #region Skin/Herb/Mine Corpses Settings
+        [Setting, DefaultValue(true)]
+        public bool SHMC_CB { get; set; }
+        #endregion
     }
 }

@@ -67,6 +67,9 @@
  * 
  * Ver 1.31
  * All the settings in the GUI is finaly working, now you can choose if you want the plugin to not search for a itemgroup.
+ * 
+ * Ver 1.35
+ * Added the option to Skin / Herb / Mine corpses if you have the ability to do so (BETA!!!) as requested.
  */
 #endregion
 
@@ -99,8 +102,10 @@ namespace ObjectGatherer {
         public static WoWPoint LocationId = WoWPoint.Empty;
         public static WoWGameObject ObjectToFind;
         public static WoWUnit NPCToFind;
+        public static WoWUnit SpecialToFind;
         public static List<WoWGameObject> ObjList;
         public static List<WoWUnit> NPCList;
+        public static List<WoWUnit> SpecialList;
         public static uint[] Filterlist;
         private static int _interactway;
         private static readonly Stopwatch MyTimer = new Stopwatch();
@@ -133,7 +138,7 @@ namespace ObjectGatherer {
             if ((Me.IsActuallyInCombat) || (Me.IsDead) || (Me.IsGhost)) { LocationId = WoWPoint.Empty; }
             if (LocationId == WoWPoint.Empty) { UpdateObjectList(); }
             if ((LocationId != WoWPoint.Empty) && (LocationId.Distance(Me.Location) > 3)) { MoveToObject(); }
-            if (LocationId.Distance(Me.Location) <= 3) { InteractWithObject(); }
+            if ((LocationId != WoWPoint.Empty) && (LocationId.Distance(Me.Location) <= 3)) { InteractWithObject(); }
         }
 
         #endregion
@@ -348,6 +353,9 @@ namespace ObjectGatherer {
                     if ((_interactway == 2) && (ObjectToFind.CanUseNow())) {
                         ObjectToFind.Interact();
                     }
+                    if (_interactway == 3) {
+                        SpecialToFind.Interact();
+                    }
                     _checkInteract = true;
                 }
             }
@@ -382,6 +390,34 @@ namespace ObjectGatherer {
                       .Where(o => (o.Distance2D <= LootTargeting.LootRadius) && Filterlist.Contains(o.Entry))
                       .OrderBy(o => o.Distance)
                       .ToList();
+            SpecialList = ObjectManager.GetObjectsOfType<WoWUnit>().OrderBy(s => s.Distance)
+                      .ToList();
+
+            #region Search for Skinn-/Herb-/Minable NPC's
+            foreach (var s in SpecialList) {
+                if (Me.IsOnTransport) {
+                    LocationId = WoWPoint.Empty;
+                    return;
+                }
+//                if (s.CanSkin) {
+//                    OGlog("Skinning/Herbing/Mining on : {0} is possible, and I HAVE the skill.", s.Name);
+//                }
+//                else if (s.Skinnable) {
+//                    OGlog("Skinning/Herbing/Mining on : {0} is possible, but I DON'T have the skill.", s.Name);
+//                }
+                if (s.CanSkin) {
+                    if (ObjectGatherer_Settings.Instance.SHMC_CB) {
+                        LocationId = WoWMovement.CalculatePointFrom(s.Location, 3);
+                        _interactway = 3;
+                        if (NPCToFind != s) {
+                            OGlog("Moving to {0}, to Skin/Herb/Mine {1}.", s.Location, s.Name);
+                            NPCToFind = s;
+                        }
+                        CheckPointTimer.Restart();
+                    }
+                }
+            }
+            #endregion
 
 
             #region Search for NPC
@@ -390,7 +426,7 @@ namespace ObjectGatherer {
                     LocationId = WoWPoint.Empty; 
                     return;
                 }
-                if (!NPCToFind.CanSelect) {
+                if (!u.CanSelect) {
                     LocationId = WoWPoint.Empty; 
                     return;
                 }
@@ -446,5 +482,6 @@ namespace ObjectGatherer {
             #endregion
         }
         #endregion
+
     }
 }

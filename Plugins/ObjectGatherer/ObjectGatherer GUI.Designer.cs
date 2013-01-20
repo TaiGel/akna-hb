@@ -35,6 +35,8 @@
             this.groupBox11 = new System.Windows.Forms.GroupBox();
             this.label1 = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.groupBox13 = new System.Windows.Forms.GroupBox();
+            this.SHMC_CB = new System.Windows.Forms.CheckBox();
             this.groupBox6 = new System.Windows.Forms.GroupBox();
             this.IAMTN_CB = new System.Windows.Forms.CheckBox();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
@@ -67,6 +69,7 @@
             this.tabPage1.SuspendLayout();
             this.groupBox11.SuspendLayout();
             this.groupBox1.SuspendLayout();
+            this.groupBox13.SuspendLayout();
             this.groupBox6.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.groupBox5.SuspendLayout();
@@ -145,6 +148,7 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.groupBox13);
             this.groupBox1.Controls.Add(this.groupBox6);
             this.groupBox1.Controls.Add(this.groupBox3);
             this.groupBox1.Controls.Add(this.groupBox5);
@@ -160,6 +164,27 @@
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "General Settings";
+            // 
+            // groupBox13
+            // 
+            this.groupBox13.Controls.Add(this.SHMC_CB);
+            this.groupBox13.Location = new System.Drawing.Point(212, 183);
+            this.groupBox13.Name = "groupBox13";
+            this.groupBox13.Size = new System.Drawing.Size(200, 47);
+            this.groupBox13.TabIndex = 1;
+            this.groupBox13.TabStop = false;
+            this.groupBox13.Text = "BETA!!!";
+            // 
+            // SHMC_CB
+            // 
+            this.SHMC_CB.AutoSize = true;
+            this.SHMC_CB.Location = new System.Drawing.Point(7, 19);
+            this.SHMC_CB.Name = "SHMC_CB";
+            this.SHMC_CB.Size = new System.Drawing.Size(144, 17);
+            this.SHMC_CB.TabIndex = 0;
+            this.SHMC_CB.Text = "Skin/Herb/Mine Corpses";
+            this.SHMC_CB.UseVisualStyleBackColor = true;
+            this.SHMC_CB.CheckedChanged += new System.EventHandler(this.SHMC_CB_CheckedChanged);
             // 
             // groupBox6
             // 
@@ -478,6 +503,8 @@
             this.groupBox11.ResumeLayout(false);
             this.groupBox11.PerformLayout();
             this.groupBox1.ResumeLayout(false);
+            this.groupBox13.ResumeLayout(false);
+            this.groupBox13.PerformLayout();
             this.groupBox6.ResumeLayout(false);
             this.groupBox6.PerformLayout();
             this.groupBox3.ResumeLayout(false);
@@ -541,5 +568,7 @@
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.LinkLabel linkLabel2;
+        private System.Windows.Forms.GroupBox groupBox13;
+        private System.Windows.Forms.CheckBox SHMC_CB;
     }
 }

@@ -28,6 +28,7 @@ namespace ObjectGatherer
             OE_CB.Checked = ObjectGatherer_Settings.Instance.OE_CB;
             TC_CB.Checked = ObjectGatherer_Settings.Instance.TC_CB;
             Q_CB.Checked = ObjectGatherer_Settings.Instance.Q_CB;
+            SHMC_CB.Checked = ObjectGatherer_Settings.Instance.SHMC_CB;
         }
 
         #region Button Settings
@@ -73,44 +74,44 @@ namespace ObjectGatherer
         #endregion
 
         #region Is Another Man's Treasure Settings
-        private void IAMT_CB_CheckedChanged(object sender, EventArgs e)
-        {
+        private void IAMT_CB_CheckedChanged(object sender, EventArgs e) {
             ObjectGatherer_Settings.Instance.IAMT_CB = IAMT_CB.Checked;
         }
         #endregion
 
         #region Is Another Man's Treasure NPC's Settings
-        private void IAMTN_CB_CheckedChanged(object sender, EventArgs e)
-        {
+        private void IAMTN_CB_CheckedChanged(object sender, EventArgs e) {
             ObjectGatherer_Settings.Instance.IAMTN_CB = IAMTN_CB.Checked;
         }
         #endregion
 
         #region Netherwing Egg Settings
-        private void NE_CB_CheckedChanged(object sender, EventArgs e)
-        {
+        private void NE_CB_CheckedChanged(object sender, EventArgs e) {
             ObjectGatherer_Settings.Instance.NE_CB = NE_CB.Checked;
         }
         #endregion
 
         #region Onyx Egg Settings
-        private void OE_CB_CheckedChanged(object sender, EventArgs e)
-        {
+        private void OE_CB_CheckedChanged(object sender, EventArgs e) {
             ObjectGatherer_Settings.Instance.OE_CB = OE_CB.Checked;
         }
         #endregion
 
         #region Treasure Chests Settings
-        private void TC_CB_CheckedChanged(object sender, EventArgs e)
-        {
+        private void TC_CB_CheckedChanged(object sender, EventArgs e) {
             ObjectGatherer_Settings.Instance.TC_CB = TC_CB.Checked;
         }
         #endregion
 
         #region Quests Settings
-        private void Q_CB_CheckedChanged(object sender, EventArgs e)
-        {
+        private void Q_CB_CheckedChanged(object sender, EventArgs e) {
             ObjectGatherer_Settings.Instance.Q_CB = Q_CB.Checked;
+        }
+        #endregion
+
+        #region Skin/Herb/Mine Corpses Settings
+        private void SHMC_CB_CheckedChanged(object sender, EventArgs e) {
+            ObjectGatherer_Settings.Instance.SHMC_CB = SHMC_CB.Checked;
         }
         #endregion
     }
