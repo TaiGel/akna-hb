@@ -433,10 +433,6 @@ namespace ObjectGatherer {
                 #region Mineing
                 if ((ObjectGatherer_Settings.Instance.SHMC_CB) && (s.SkinType == WoWCreatureSkinType.Rock) && (_miner) && (LocationId == WoWPoint.Empty)) {
                     if ((!Navigator.CanNavigateFully(Me.Location, s.Location)) && (!s.InLineOfSight)) {
-                        if (NPCToFind != s) {
-                            OGlog("Found {0} at {1}, but can't get to it.", s.Name, s.Location);
-                            NPCToFind = s;
-                        }
                         LocationId = WoWPoint.Empty;
                         return;
                     }
@@ -451,6 +447,10 @@ namespace ObjectGatherer {
 
                 #region Herbing
                 if ((ObjectGatherer_Settings.Instance.SHMC_CB) && (s.SkinType == WoWCreatureSkinType.Herb) && (_herber) && (LocationId == WoWPoint.Empty)) {
+                    if ((!Navigator.CanNavigateFully(Me.Location, s.Location)) && (!s.InLineOfSight)) {
+                        LocationId = WoWPoint.Empty;
+                        return;
+                    }
                     if (SpecialToFind != s) {
                         OGlog("Moveing to Herb {0}", s.Name);
                         SpecialToFind = s;
@@ -462,6 +462,10 @@ namespace ObjectGatherer {
 
                 #region Skinning
                 if ((ObjectGatherer_Settings.Instance.SHMC_CB) && (s.SkinType == WoWCreatureSkinType.Leather) && (_skinner) && (LocationId == WoWPoint.Empty)) {
+                    if ((!Navigator.CanNavigateFully(Me.Location, s.Location)) && (!s.InLineOfSight)) {
+                        LocationId = WoWPoint.Empty;
+                        return;
+                    }
                     if (SpecialToFind != s) {
                         OGlog("Moveing to Skin {0}", s.Name);
                         SpecialToFind = s;
