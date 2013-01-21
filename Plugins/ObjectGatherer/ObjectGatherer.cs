@@ -96,7 +96,7 @@ namespace ObjectGatherer {
         #region Variables
         public override string Name { get { return "ObjectGatherer"; } }
         public override string Author { get { return "AknA"; } }
-        public override Version Version { get { return new Version(1, 3, 5); } }
+        public override Version Version { get { return new Version(1, 3, 6); } }
         public static void OGlog(string message, params object[] args) { Logging.Write(Colors.DeepSkyBlue, "[ObjectGatherer]: " + message, args); }
         public static LocalPlayer Me { get { return StyxWoW.Me; } }
         public static WoWPoint LocationId = WoWPoint.Empty;
@@ -405,17 +405,20 @@ namespace ObjectGatherer {
 //                else if (s.Skinnable) {
 //                    OGlog("Skinning/Herbing/Mining on : {0} is possible, but I DON'T have the skill.", s.Name);
 //                }
-                if (s.CanSkin) {
-                    if (ObjectGatherer_Settings.Instance.SHMC_CB) {
+                if (s.Skinnable) {
+                    if (SpecialToFind != s) {
+                        OGlog("Found 'skinnable' mob at {0}", s.Location);
+                    }
+                    if ((ObjectGatherer_Settings.Instance.SHMC_CB) && (s.CanSkin)) {
                         LocationId = WoWMovement.CalculatePointFrom(s.Location, 3);
                         _interactway = 3;
-                        if (NPCToFind != s) {
+                        if (SpecialToFind != s) {
                             OGlog("Moving to {0}, to Skin/Herb/Mine {1}.", s.Location, s.Name);
-                            NPCToFind = s;
                         }
                         CheckPointTimer.Restart();
                     }
                 }
+                SpecialToFind = s;
             }
             #endregion
 
