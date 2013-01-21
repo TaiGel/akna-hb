@@ -108,6 +108,8 @@ namespace ObjectGatherer {
         public static List<WoWUnit> SpecialList;
         public static uint[] Filterlist;
         private static bool _miner;
+        private static bool _skinner;
+        private static bool _herber;
         private static int _interactway;
         private static readonly Stopwatch MyTimer = new Stopwatch();
         private static readonly Stopwatch CheckPointTimer = new Stopwatch();
@@ -127,6 +129,13 @@ namespace ObjectGatherer {
             if (Me.GetSkill(SkillLine.Mining).CurrentValue != 0) {
                 _miner = true;
             }
+            if (Me.GetSkill(SkillLine.Skinning).CurrentValue != 0) {
+                _skinner = true;
+            }
+            if (Me.GetSkill(SkillLine.Herbalism).CurrentValue != 0) {
+                _herber = true;
+            }
+
 
         }
         #endregion
@@ -406,12 +415,17 @@ namespace ObjectGatherer {
                     return;
                 }
                 if (s.Skinnable && s.SkinType == WoWCreatureSkinType.Rock && !s.Lootable && !Me.Looting && _miner && LocationId == WoWPoint.Empty) {
-                    if (SpecialToFind != s) {
-                        OGlog("Moveing to Mine {0}", s.Name);
-                        LocationId = WoWMovement.CalculatePointFrom(s.Location, 3);
-                        _interactway = 3;
-                        SpecialToFind = s;
+                    if ((!Flightor.MountHelper.Mounted) && (!Me.IsActuallyInCombat) && (!Me.IsDead) && (!Me.IsGhost) && (s.Distance < 20)) {
+                        if (SpecialToFind != s) {
+                            OGlog("Moveing to Mine {0}", s.Name);
+                            SpecialToFind = s;
+                        }
+                        while (s.Distance > 3) {
+                            Navigator.MoveTo(s.Location);
+                        }
                     }
+                    LocationId = WoWMovement.CalculatePointFrom(s.Location, 3);
+                    _interactway = 3;
                 }
                 CheckPointTimer.Restart();
             }
