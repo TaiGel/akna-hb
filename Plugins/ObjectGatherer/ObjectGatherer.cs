@@ -77,8 +77,9 @@
  * Ver 1.41
  * Tweaked the moveto logic (forgot to add the check for SpecialToFind).
  * 
- * Ver 1.42
+ * Ver 1.43
  * Fixed the annoying hb error because first time it pulses a variable isn't set.
+ * Allso made the logic for SpecialToFind ALOT better :)
  */
 #endregion
 
@@ -105,7 +106,7 @@ namespace ObjectGatherer {
         #region Variables
         public override string Name { get { return "ObjectGatherer"; } }
         public override string Author { get { return "AknA"; } }
-        public override Version Version { get { return new Version(1, 4, 2); } }
+        public override Version Version { get { return new Version(1, 4, 3); } }
         public static void OGlog(string message, params object[] args) { Logging.Write(Colors.DeepSkyBlue, "[ObjectGatherer]: " + message, args); }
         public static LocalPlayer Me { get { return StyxWoW.Me; } }
         public static WoWPoint LocationId = WoWPoint.Empty;
@@ -398,10 +399,11 @@ namespace ObjectGatherer {
         #region MoveToObject
         private static void MoveToObject() {
             while ((LocationId.Distance(Me.Location) > 3) && (!Me.IsActuallyInCombat) && (!Me.IsDead) && (!Me.IsGhost) && (LocationId != WoWPoint.Empty)) {
-                if ((!Me.IsMoving) && (Flightor.MountHelper.Mounted) && 
-                    ((ObjectToFind.InLineOfSight) || (NPCToFind.InLineOfSight) || (SpecialToFind.InLineOfSight))) { Flightor.MoveTo(LocationId); }
-                if ((!Me.IsMoving) && (Navigator.CanNavigateFully(Me.Location, LocationId))) { Navigator.MoveTo(LocationId); }
-                if ((!Me.IsMoving) && (!Flightor.MountHelper.Mounted) && (LocationId.Distance(Me.Location) > 3)) { Flightor.MountHelper.MountUp(); }
+                if (!Me.IsMoving) {
+                    if (Flightor.MountHelper.Mounted) { Flightor.MoveTo(LocationId); }
+                    if (Navigator.CanNavigateFully(Me.Location, LocationId)) { Navigator.MoveTo(LocationId); }
+                    if ((!Flightor.MountHelper.Mounted) && (LocationId.Distance(Me.Location) > 3)) { Flightor.MountHelper.MountUp(); }
+                }
             }
         }
         #endregion
@@ -426,77 +428,39 @@ namespace ObjectGatherer {
                     LocationId = WoWPoint.Empty;
                     return;
                 }
+                if (LocationId != WoWPoint.Empty) { return; }
 
                 #region Mineing
                 if ((ObjectGatherer_Settings.Instance.SHMC_CB) && (s.SkinType == WoWCreatureSkinType.Rock) && (_miner) && (LocationId == WoWPoint.Empty)) {
-                    if ((!Flightor.MountHelper.Mounted) && (!Me.IsActuallyInCombat) && (!Me.IsDead) && (!Me.IsGhost) && (s.Distance < 20)) {
-                        if (SpecialToFind != s) {
-                            OGlog("Moveing to Mine {0}", s.Name);
-                            SpecialToFind = s;
-                        }
-                        while (s.Distance > 3) {
-                            Navigator.MoveTo(s.Location);
-                        }
-                        _interactway = 3;
-                        LocationId = WoWMovement.CalculatePointFrom(s.Location, 3);
-                        InteractWithObject();
-                        return;
-                    }
                     if (SpecialToFind != s) {
                         OGlog("Moveing to Mine {0}", s.Name);
                         SpecialToFind = s;
                     }
                     LocationId = WoWMovement.CalculatePointFrom(s.Location, 3);
                     _interactway = 3;
-                    }
+                }
                 #endregion
 
                 #region Herbing
                 if ((ObjectGatherer_Settings.Instance.SHMC_CB) && (s.SkinType == WoWCreatureSkinType.Herb) && (_herber) && (LocationId == WoWPoint.Empty)) {
-                    if ((!Flightor.MountHelper.Mounted) && (!Me.IsActuallyInCombat) && (!Me.IsDead) && (!Me.IsGhost) && (s.Distance < 20)) {
-                        if (SpecialToFind != s) {
-                            OGlog("Moveing to Herb {0}", s.Name);
-                            SpecialToFind = s;
-                        }
-                        while (s.Distance > 3) {
-                            Navigator.MoveTo(s.Location);
-                        }
-                        _interactway = 3;
-                        LocationId = WoWMovement.CalculatePointFrom(s.Location, 3);
-                        InteractWithObject();
-                        return;
-                    }
                     if (SpecialToFind != s) {
                         OGlog("Moveing to Herb {0}", s.Name);
                         SpecialToFind = s;
                     }
                     LocationId = WoWMovement.CalculatePointFrom(s.Location, 3);
                     _interactway = 3;
-                    }
+                }
                 #endregion
 
                 #region Skinning
                 if ((ObjectGatherer_Settings.Instance.SHMC_CB) && (s.SkinType == WoWCreatureSkinType.Leather) && (_skinner) && (LocationId == WoWPoint.Empty)) {
-                    if ((!Flightor.MountHelper.Mounted) && (!Me.IsActuallyInCombat) && (!Me.IsDead) && (!Me.IsGhost) && (s.Distance < 20)) {
-                        if (SpecialToFind != s) {
-                            OGlog("Moveing to Skin {0}", s.Name);
-                            SpecialToFind = s;
-                        }
-                        while (s.Distance > 3) {
-                            Navigator.MoveTo(s.Location);
-                        }
-                        _interactway = 3;
-                        LocationId = WoWMovement.CalculatePointFrom(s.Location, 3);
-                        InteractWithObject();
-                        return;
-                    }
                     if (SpecialToFind != s) {
                         OGlog("Moveing to Skin {0}", s.Name);
                         SpecialToFind = s;
                     }
                     LocationId = WoWMovement.CalculatePointFrom(s.Location, 3);
                     _interactway = 3;
-                    }
+                }
                 #endregion
 
                 CheckPointTimer.Restart();
