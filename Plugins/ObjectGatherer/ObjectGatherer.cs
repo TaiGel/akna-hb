@@ -432,6 +432,14 @@ namespace ObjectGatherer {
 
                 #region Mineing
                 if ((ObjectGatherer_Settings.Instance.SHMC_CB) && (s.SkinType == WoWCreatureSkinType.Rock) && (_miner) && (LocationId == WoWPoint.Empty)) {
+                    if ((!Navigator.CanNavigateFully(Me.Location, s.Location)) && (!s.InLineOfSight)) {
+                        if (NPCToFind != s) {
+                            OGlog("Found {0} at {1}, but can't get to it.", s.Name, s.Location);
+                            NPCToFind = s;
+                        }
+                        LocationId = WoWPoint.Empty;
+                        return;
+                    }
                     if (SpecialToFind != s) {
                         OGlog("Moveing to Mine {0}", s.Name);
                         SpecialToFind = s;
@@ -462,7 +470,7 @@ namespace ObjectGatherer {
                     _interactway = 3;
                 }
                 #endregion
-
+                
                 CheckPointTimer.Restart();
             }
             #endregion
