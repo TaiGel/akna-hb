@@ -73,6 +73,9 @@
  * 
  * Ver 1.40
  * Now the option to Skin / Herb / Mine corpses if you have the profession should work.
+ * 
+ * Ver 1.41
+ * Tweaked the moveto logic (forgot to add the check for SpecialToFind).
  */
 #endregion
 
@@ -99,7 +102,7 @@ namespace ObjectGatherer {
         #region Variables
         public override string Name { get { return "ObjectGatherer"; } }
         public override string Author { get { return "AknA"; } }
-        public override Version Version { get { return new Version(1, 4, 0); } }
+        public override Version Version { get { return new Version(1, 4, 1); } }
         public static void OGlog(string message, params object[] args) { Logging.Write(Colors.DeepSkyBlue, "[ObjectGatherer]: " + message, args); }
         public static LocalPlayer Me { get { return StyxWoW.Me; } }
         public static WoWPoint LocationId = WoWPoint.Empty;
@@ -390,8 +393,9 @@ namespace ObjectGatherer {
         #region MoveToObject
         private static void MoveToObject() {
             while ((LocationId.Distance(Me.Location) > 3) && (!Me.IsActuallyInCombat) && (!Me.IsDead) && (!Me.IsGhost) && (LocationId != WoWPoint.Empty)) {
-                if (!Flightor.MountHelper.Mounted) { Flightor.MountHelper.MountUp(); }
-                if ((!Me.IsMoving) && ((ObjectToFind.InLineOfSight) || (NPCToFind.InLineOfSight))) { Flightor.MoveTo(LocationId); }
+                if ((!Flightor.MountHelper.Mounted) && (LocationId.Distance(Me.Location) > 20)) { Flightor.MountHelper.MountUp(); }
+                if ((!Me.IsMoving) && (Flightor.MountHelper.Mounted) && 
+                    ((ObjectToFind.InLineOfSight) || (NPCToFind.InLineOfSight) || (SpecialToFind.InLineOfSight))) { Flightor.MoveTo(LocationId); }
                 if ((!Me.IsMoving) && (Navigator.CanNavigateFully(Me.Location, LocationId))) { Navigator.MoveTo(LocationId); }
             }
         }
