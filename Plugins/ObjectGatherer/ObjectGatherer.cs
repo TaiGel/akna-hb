@@ -107,6 +107,7 @@ namespace ObjectGatherer {
         public static List<WoWUnit> NPCList;
         public static List<WoWUnit> SpecialList;
         public static uint[] Filterlist;
+        private static bool _miner;
         private static int _interactway;
         private static readonly Stopwatch MyTimer = new Stopwatch();
         private static readonly Stopwatch CheckPointTimer = new Stopwatch();
@@ -123,6 +124,10 @@ namespace ObjectGatherer {
             Filterlist = UpdateFilterList();
             BotEvents.OnBotStarted += BotEvent_OnBotStarted;
             BotEvents.OnBotStopped += BotEvent_OnBotStopped;
+            if (Me.GetSkill(SkillLine.Mining).CurrentValue != 0) {
+                _miner = true;
+            }
+
         }
         #endregion
 
@@ -390,7 +395,8 @@ namespace ObjectGatherer {
                       .Where(o => (o.Distance2D <= LootTargeting.LootRadius) && Filterlist.Contains(o.Entry))
                       .OrderBy(o => o.Distance)
                       .ToList();
-            SpecialList = ObjectManager.GetObjectsOfType<WoWUnit>().OrderBy(s => s.Distance)
+            SpecialList = ObjectManager.GetObjectsOfType<WoWUnit>().Where(s => !s.IsAlive)
+                      .OrderBy(s => s.Distance)
                       .ToList();
 
             #region Search for Skinn-/Herb-/Minable NPC's
@@ -399,19 +405,15 @@ namespace ObjectGatherer {
                     LocationId = WoWPoint.Empty;
                     return;
                 }
-                if (SpecialToFind != s) {
-                    if (s.CanSkin) {
-                        OGlog("Skinning/Herbing/Mining on : {0} is possible, and I HAVE the skill.", s.Name);
+                if (s.Skinnable && s.SkinType == WoWCreatureSkinType.Rock && !s.Lootable && !Me.Looting && _miner && LocationId == WoWPoint.Empty) {
+                    if (SpecialToFind != s) {
+                        OGlog("Moveing to Mine {0}", s.Name);
+                        LocationId = WoWMovement.CalculatePointFrom(s.Location, 3);
+                        _interactway = 3;
+                        SpecialToFind = s;
                     }
-                    if (s.Skinnable) {
-                        OGlog("Skinning/Herbing/Mining on : {0} is possible.", s.Name);
-                        OGlog("Skintype is : {0}", s.SkinType);
-                    }
-                    if (s.CanLoot) {
-                        OGlog("Can Loot : {0}", s.Name);
-                    }
-                    SpecialToFind = s;
                 }
+                CheckPointTimer.Restart();
             }
             #endregion
 
