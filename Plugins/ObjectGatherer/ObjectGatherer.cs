@@ -393,10 +393,10 @@ namespace ObjectGatherer {
         #region MoveToObject
         private static void MoveToObject() {
             while ((LocationId.Distance(Me.Location) > 3) && (!Me.IsActuallyInCombat) && (!Me.IsDead) && (!Me.IsGhost) && (LocationId != WoWPoint.Empty)) {
-                if ((!Flightor.MountHelper.Mounted) && (LocationId.Distance(Me.Location) > 20)) { Flightor.MountHelper.MountUp(); }
                 if ((!Me.IsMoving) && (Flightor.MountHelper.Mounted) && 
                     ((ObjectToFind.InLineOfSight) || (NPCToFind.InLineOfSight) || (SpecialToFind.InLineOfSight))) { Flightor.MoveTo(LocationId); }
                 if ((!Me.IsMoving) && (Navigator.CanNavigateFully(Me.Location, LocationId))) { Navigator.MoveTo(LocationId); }
+                if ((!Me.IsMoving) && (!Flightor.MountHelper.Mounted)) { Flightor.MountHelper.MountUp(); }
             }
         }
         #endregion
