@@ -173,7 +173,7 @@
             this.groupBox13.Size = new System.Drawing.Size(200, 47);
             this.groupBox13.TabIndex = 1;
             this.groupBox13.TabStop = false;
-            this.groupBox13.Text = "BETA!!!";
+            this.groupBox13.Text = "Skin / Herb / Mine Corpses";
             // 
             // SHMC_CB
             // 
