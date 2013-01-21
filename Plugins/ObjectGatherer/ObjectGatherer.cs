@@ -416,7 +416,7 @@ namespace ObjectGatherer {
                       .Where(o => (o.Distance2D <= LootTargeting.LootRadius) && Filterlist.Contains(o.Entry))
                       .OrderBy(o => o.Distance)
                       .ToList();
-            SpecialList = ObjectManager.GetObjectsOfType<WoWUnit>().Where(s => !s.IsAlive)
+            SpecialList = ObjectManager.GetObjectsOfType<WoWUnit>().Where(s => s.Skinnable)
                       .OrderBy(s => s.Distance)
                       .ToList();
 
@@ -426,9 +426,9 @@ namespace ObjectGatherer {
                     LocationId = WoWPoint.Empty;
                     return;
                 }
+
                 #region Mineing
-                if ((ObjectGatherer_Settings.Instance.SHMC_CB) && (s.Skinnable) && (s.SkinType == WoWCreatureSkinType.Rock) && (!s.Lootable) && 
-                    (!Me.Looting) && (_miner) && (LocationId == WoWPoint.Empty)) {
+                if ((ObjectGatherer_Settings.Instance.SHMC_CB) && (s.SkinType == WoWCreatureSkinType.Rock) && (_miner) && (LocationId == WoWPoint.Empty)) {
                     if ((!Flightor.MountHelper.Mounted) && (!Me.IsActuallyInCombat) && (!Me.IsDead) && (!Me.IsGhost) && (s.Distance < 20)) {
                         if (SpecialToFind != s) {
                             OGlog("Moveing to Mine {0}", s.Name);
@@ -452,8 +452,7 @@ namespace ObjectGatherer {
                 #endregion
 
                 #region Herbing
-                if ((ObjectGatherer_Settings.Instance.SHMC_CB) && (s.Skinnable) && (s.SkinType == WoWCreatureSkinType.Herb) && (!s.Lootable) && 
-                    (!Me.Looting) && (_herber) && (LocationId == WoWPoint.Empty)) {
+                if ((ObjectGatherer_Settings.Instance.SHMC_CB) && (s.SkinType == WoWCreatureSkinType.Herb) && (_herber) && (LocationId == WoWPoint.Empty)) {
                     if ((!Flightor.MountHelper.Mounted) && (!Me.IsActuallyInCombat) && (!Me.IsDead) && (!Me.IsGhost) && (s.Distance < 20)) {
                         if (SpecialToFind != s) {
                             OGlog("Moveing to Herb {0}", s.Name);
@@ -477,8 +476,7 @@ namespace ObjectGatherer {
                 #endregion
 
                 #region Skinning
-                if ((ObjectGatherer_Settings.Instance.SHMC_CB) && (s.Skinnable) && (s.SkinType == WoWCreatureSkinType.Leather) && (!s.Lootable) && 
-                    (!Me.Looting) && (_skinner) && (LocationId == WoWPoint.Empty)) {
+                if ((ObjectGatherer_Settings.Instance.SHMC_CB) && (s.SkinType == WoWCreatureSkinType.Leather) && (_skinner) && (LocationId == WoWPoint.Empty)) {
                     if ((!Flightor.MountHelper.Mounted) && (!Me.IsActuallyInCombat) && (!Me.IsDead) && (!Me.IsGhost) && (s.Distance < 20)) {
                         if (SpecialToFind != s) {
                             OGlog("Moveing to Skin {0}", s.Name);
