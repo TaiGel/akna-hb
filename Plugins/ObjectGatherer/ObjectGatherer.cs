@@ -399,26 +399,19 @@ namespace ObjectGatherer {
                     LocationId = WoWPoint.Empty;
                     return;
                 }
-//                if (s.CanSkin) {
-//                    OGlog("Skinning/Herbing/Mining on : {0} is possible, and I HAVE the skill.", s.Name);
-//                }
-//                else if (s.Skinnable) {
-//                    OGlog("Skinning/Herbing/Mining on : {0} is possible, but I DON'T have the skill.", s.Name);
-//                }
-                if (s.Skinnable) {
-                    if (SpecialToFind != s) {
-                        OGlog("Found 'skinnable' mob at {0}", s.Location);
+                if (SpecialToFind != s) {
+                    if (s.CanSkin) {
+                        OGlog("Skinning/Herbing/Mining on : {0} is possible, and I HAVE the skill.", s.Name);
                     }
-                    if ((ObjectGatherer_Settings.Instance.SHMC_CB) && (s.CanSkin)) {
-                        LocationId = WoWMovement.CalculatePointFrom(s.Location, 3);
-                        _interactway = 3;
-                        if (SpecialToFind != s) {
-                            OGlog("Moving to {0}, to Skin/Herb/Mine {1}.", s.Location, s.Name);
-                        }
-                        CheckPointTimer.Restart();
+                    if (s.Skinnable) {
+                        OGlog("Skinning/Herbing/Mining on : {0} is possible.", s.Name);
+                        OGlog("Skintype is : {0}", s.SkinType);
                     }
+                    if (s.CanLoot) {
+                        OGlog("Can Loot : {0}", s.Name);
+                    }
+                    SpecialToFind = s;
                 }
-                SpecialToFind = s;
             }
             #endregion
 
