@@ -76,6 +76,9 @@
  * 
  * Ver 1.41
  * Tweaked the moveto logic (forgot to add the check for SpecialToFind).
+ * 
+ * Ver 1.42
+ * Fixed the annoying hb error because first time it pulses a variable isn't set.
  */
 #endregion
 
@@ -102,7 +105,7 @@ namespace ObjectGatherer {
         #region Variables
         public override string Name { get { return "ObjectGatherer"; } }
         public override string Author { get { return "AknA"; } }
-        public override Version Version { get { return new Version(1, 4, 1); } }
+        public override Version Version { get { return new Version(1, 4, 2); } }
         public static void OGlog(string message, params object[] args) { Logging.Write(Colors.DeepSkyBlue, "[ObjectGatherer]: " + message, args); }
         public static LocalPlayer Me { get { return StyxWoW.Me; } }
         public static WoWPoint LocationId = WoWPoint.Empty;
@@ -398,7 +401,7 @@ namespace ObjectGatherer {
                 if ((!Me.IsMoving) && (Flightor.MountHelper.Mounted) && 
                     ((ObjectToFind.InLineOfSight) || (NPCToFind.InLineOfSight) || (SpecialToFind.InLineOfSight))) { Flightor.MoveTo(LocationId); }
                 if ((!Me.IsMoving) && (Navigator.CanNavigateFully(Me.Location, LocationId))) { Navigator.MoveTo(LocationId); }
-                if ((!Me.IsMoving) && (!Flightor.MountHelper.Mounted)) { Flightor.MountHelper.MountUp(); }
+                if ((!Me.IsMoving) && (!Flightor.MountHelper.Mounted) && (LocationId.Distance(Me.Location) > 3)) { Flightor.MountHelper.MountUp(); }
             }
         }
         #endregion
