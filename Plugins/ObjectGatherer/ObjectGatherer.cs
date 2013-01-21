@@ -156,11 +156,13 @@ namespace ObjectGatherer {
             if (!_initialized) return;
             if (CheckPointTimer.ElapsedMilliseconds > 30000) { LocationId = WoWPoint.Empty; }
             if ((Me.IsActuallyInCombat) || (Me.IsDead) || (Me.IsGhost)) { LocationId = WoWPoint.Empty; }
-            if (LocationId == WoWPoint.Empty) { UpdateObjectList(); }
-            if ((LocationId != WoWPoint.Empty) && (LocationId.Distance(Me.Location) > 3)) { MoveToObject(); }
-            if ((LocationId != WoWPoint.Empty) && (LocationId.Distance(Me.Location) <= 3)) { InteractWithObject(); }
+            if (LocationId == WoWPoint.Empty) { 
+                UpdateObjectList();
+                return;
+            }
+            if (LocationId.Distance(Me.Location) > 3) { MoveToObject(); }
+            if (LocationId.Distance(Me.Location) <= 3) { InteractWithObject(); }
         }
-
         #endregion
 
         #region Ancient Guo-Lai Cache Key
