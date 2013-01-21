@@ -437,6 +437,8 @@ namespace ObjectGatherer {
                         while (s.Distance > 3) {
                             Navigator.MoveTo(s.Location);
                         }
+                        _interactway = 3;
+                        InteractWithObject();
                     }
                     if (SpecialToFind != s) {
                         OGlog("Moveing to Mine {0}", s.Name);
@@ -458,6 +460,8 @@ namespace ObjectGatherer {
                         while (s.Distance > 3) {
                             Navigator.MoveTo(s.Location);
                         }
+                        _interactway = 3;
+                        InteractWithObject();
                     }
                     if (SpecialToFind != s) {
                         OGlog("Moveing to Herb {0}", s.Name);
@@ -479,6 +483,8 @@ namespace ObjectGatherer {
                         while (s.Distance > 3) {
                             Navigator.MoveTo(s.Location);
                         }
+                        _interactway = 3;
+                        InteractWithObject();
                     }
                     if (SpecialToFind != s) {
                         OGlog("Moveing to Skin {0}", s.Name);
