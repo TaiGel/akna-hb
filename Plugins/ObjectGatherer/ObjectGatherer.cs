@@ -80,6 +80,10 @@
  * Ver 1.43
  * Fixed the annoying hb error.
  * Allso made the logic for SpecialToFind ALOT better :)
+ * 
+ * Ver 1.45
+ * Tweaked the skinning/mining/herbing part to not mount up.
+ * Looks more human this way.
  */
 #endregion
 
@@ -106,7 +110,7 @@ namespace ObjectGatherer {
         #region Variables
         public override string Name { get { return "ObjectGatherer"; } }
         public override string Author { get { return "AknA"; } }
-        public override Version Version { get { return new Version(1, 4, 4); } }
+        public override Version Version { get { return new Version(1, 4, 5); } }
         public static void OGlog(string message, params object[] args) { Logging.Write(Colors.DeepSkyBlue, "[ObjectGatherer]: " + message, args); }
         public static LocalPlayer Me { get { return StyxWoW.Me; } }
         public static WoWPoint LocationId = WoWPoint.Empty;
@@ -400,9 +404,9 @@ namespace ObjectGatherer {
         private static void MoveToObject() {
             while ((LocationId.Distance(Me.Location) > 3) && (!Me.IsActuallyInCombat) && (!Me.IsDead) && (!Me.IsGhost) && (LocationId != WoWPoint.Empty)) {
                 if (!Me.IsMoving) {
-                    if (Flightor.MountHelper.Mounted) { Flightor.MoveTo(LocationId); }
+                    if (Flightor.MountHelper.Mounted && _interactway != 3) { Flightor.MoveTo(LocationId); }
                     if (Navigator.CanNavigateFully(Me.Location, LocationId)) { Navigator.MoveTo(LocationId); }
-                    if ((!Flightor.MountHelper.Mounted) && (LocationId.Distance(Me.Location) > 3)) { Flightor.MountHelper.MountUp(); }
+                    if ((!Flightor.MountHelper.Mounted) && (LocationId.Distance(Me.Location) > 3) && (_interactway != 3)) { Flightor.MountHelper.MountUp(); }
                 }
             }
         }
@@ -418,7 +422,7 @@ namespace ObjectGatherer {
                       .Where(o => (o.Distance2D <= LootTargeting.LootRadius) && Filterlist.Contains(o.Entry))
                       .OrderBy(o => o.Distance)
                       .ToList();
-            SpecialList = ObjectManager.GetObjectsOfType<WoWUnit>().Where(s => s.Skinnable)
+            SpecialList = ObjectManager.GetObjectsOfType<WoWUnit>().Where(s => s.Skinnable && s.Distance < 20)
                       .OrderBy(s => s.Distance)
                       .ToList();
 
@@ -432,7 +436,7 @@ namespace ObjectGatherer {
 
                 #region Mineing
                 if ((ObjectGatherer_Settings.Instance.SHMC_CB) && (s.SkinType == WoWCreatureSkinType.Rock) && (_miner) && (LocationId == WoWPoint.Empty)) {
-                    if ((!Navigator.CanNavigateFully(Me.Location, s.Location)) && (!s.InLineOfSight)) {
+                    if (!Navigator.CanNavigateFully(Me.Location, s.Location)) {
                         LocationId = WoWPoint.Empty;
                         return;
                     }
@@ -447,7 +451,7 @@ namespace ObjectGatherer {
 
                 #region Herbing
                 if ((ObjectGatherer_Settings.Instance.SHMC_CB) && (s.SkinType == WoWCreatureSkinType.Herb) && (_herber) && (LocationId == WoWPoint.Empty)) {
-                    if ((!Navigator.CanNavigateFully(Me.Location, s.Location)) && (!s.InLineOfSight)) {
+                    if (!Navigator.CanNavigateFully(Me.Location, s.Location)) {
                         LocationId = WoWPoint.Empty;
                         return;
                     }
@@ -462,7 +466,7 @@ namespace ObjectGatherer {
 
                 #region Skinning
                 if ((ObjectGatherer_Settings.Instance.SHMC_CB) && (s.SkinType == WoWCreatureSkinType.Leather) && (_skinner) && (LocationId == WoWPoint.Empty)) {
-                    if ((!Navigator.CanNavigateFully(Me.Location, s.Location)) && (!s.InLineOfSight)) {
+                    if (!Navigator.CanNavigateFully(Me.Location, s.Location)) {
                         LocationId = WoWPoint.Empty;
                         return;
                     }
