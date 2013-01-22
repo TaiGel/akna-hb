@@ -82,7 +82,7 @@
  * Allso made the logic for SpecialToFind ALOT better :)
  * 
  * Ver 1.45
- * Tweaked the skinning/mining/herbing part to not mount up.
+ * Tweaked the skinning/mining/herbing part to only use navigator and not flightor.
  * Looks more human this way.
  */
 #endregion
