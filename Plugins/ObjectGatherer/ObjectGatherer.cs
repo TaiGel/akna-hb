@@ -78,7 +78,7 @@
  * Tweaked the moveto logic (forgot to add the check for SpecialToFind).
  * 
  * Ver 1.43
- * Fixed the annoying hb error because first time it pulses a variable isn't set.
+ * Fixed the annoying hb error.
  * Allso made the logic for SpecialToFind ALOT better :)
  */
 #endregion
@@ -106,7 +106,7 @@ namespace ObjectGatherer {
         #region Variables
         public override string Name { get { return "ObjectGatherer"; } }
         public override string Author { get { return "AknA"; } }
-        public override Version Version { get { return new Version(1, 4, 3); } }
+        public override Version Version { get { return new Version(1, 4, 4); } }
         public static void OGlog(string message, params object[] args) { Logging.Write(Colors.DeepSkyBlue, "[ObjectGatherer]: " + message, args); }
         public static LocalPlayer Me { get { return StyxWoW.Me; } }
         public static WoWPoint LocationId = WoWPoint.Empty;
@@ -479,18 +479,11 @@ namespace ObjectGatherer {
             }
             #endregion
 
-            if (LocationId != WoWPoint.Empty) { return; }
-
             #region Search for NPC
             foreach (var u in NPCList) {
-                if (Me.IsOnTransport) {
-                    LocationId = WoWPoint.Empty; 
-                    return;
-                }
-                if (!u.CanSelect) {
-                    LocationId = WoWPoint.Empty; 
-                    return;
-                }
+                if (Me.IsOnTransport) { LocationId = WoWPoint.Empty; }
+                if (!u.CanSelect) { LocationId = WoWPoint.Empty; }
+                if (LocationId != WoWPoint.Empty) { return; }
                 if ((!Navigator.CanNavigateFully(Me.Location, u.Location)) && (!u.InLineOfSight)) {
                     if (NPCToFind != u) {
                         OGlog("Found {0} at {1}, but can't get to it.", u.Name, u.Location);
@@ -509,22 +502,12 @@ namespace ObjectGatherer {
             }
             #endregion
 
-            if (LocationId != WoWPoint.Empty) { return; }
-
             #region Search for Object
             foreach (var o in ObjList) {
-                if ((o.Entry == 214388) && (!AncientGuoLaiCacheKey())) {
-                    LocationId = WoWPoint.Empty;
-                    return;
-                }
-                if (Me.IsOnTransport) {
-                    LocationId = WoWPoint.Empty;
-                    return;
-                }
-                if (!o.CanUse()) {
-                    LocationId = WoWPoint.Empty;
-                    return;
-                }
+                if ((o.Entry == 214388) && (!AncientGuoLaiCacheKey())) { LocationId = WoWPoint.Empty; }
+                if (Me.IsOnTransport) { LocationId = WoWPoint.Empty; }
+                if (!o.CanUse()) { LocationId = WoWPoint.Empty; }
+                if (LocationId != WoWPoint.Empty) { return; }
                 if ((!Navigator.CanNavigateFully(Me.Location, o.Location)) && (!o.InLineOfSight)) {
                     if (ObjectToFind != o) {
                         OGlog("Found {0} at {1}, but can't get to it.", o.Name, o.Location);
