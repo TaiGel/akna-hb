@@ -340,6 +340,11 @@ namespace ObjectGatherer {
             212132, // Niuzao Food Supply
             212133, // Niuzao Food Supply
             #endregion
+
+            #region Mysterious Camel Figurine
+            50409, //Mysterious Camel Figurine
+            50410, //Mysterious Camel Figurine
+            #endregion
         };
         #endregion
 
