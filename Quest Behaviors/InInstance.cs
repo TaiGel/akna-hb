@@ -13,10 +13,8 @@ using Tripper.Tools.Math;
 using Action = Styx.TreeSharp.Action;
 
 
-namespace Styx.Bot.Quest_Behaviors
-{
-    public class InInstance : CustomForcedBehavior
-    {
+namespace Styx.Bot.Quest_Behaviors {
+    public class InInstance : CustomForcedBehavior {
         /// <summary>
         /// Allows you to physically click on the screen so that your bot can get around non meshed locations or off objects. *** There is no navigation with this ****
         /// ##Syntax##
@@ -25,10 +23,8 @@ namespace Styx.Bot.Quest_Behaviors
         /// </summary>
         /// 
         public InInstance(Dictionary<string, string> args)
-            : base(args)
-        {
-            try
-            {
+            : base(args) {
+            try {
                 // QuestRequirement* attributes are explained here...
                 //    http://www.thebuddyforum.com/mediawiki/index.php?title=Honorbuddy_Programming_Cookbook:_QuestId_for_Custom_Behaviors
                 // ...and also used for IsDone processing.
@@ -43,12 +39,10 @@ namespace Styx.Bot.Quest_Behaviors
 
                 IsConverted = false;
 
-                if (string.IsNullOrEmpty(DestinationName))
-                { DestinationName = Destination.ToString(); }
+                if (string.IsNullOrEmpty(DestinationName)) { DestinationName = Destination.ToString(); }
             }
 
-            catch (Exception except)
-            {
+            catch (Exception except) {
                 // Maintenance problems occur for a number of reasons.  The primary two are...
                 // * Changes were made to the behavior, and boundary conditions weren't properly tested.
                 // * The Honorbuddy core was changed, and the behavior wasn't adjusted for the new changes.
@@ -81,24 +75,15 @@ namespace Styx.Bot.Quest_Behaviors
         private LocalPlayer Me { get { return (StyxWoW.Me); } }
         public bool IsConverted { get; set; }
 
-        ~InInstance()
-        {
-            Dispose(false);
-        }
+        ~InInstance() { Dispose(false); }
 
-
-        public void Dispose(bool isExplicitlyInitiatedDispose)
-        {
-            if (!_isDisposed)
-            {
+        public void Dispose(bool isExplicitlyInitiatedDispose) {
+            if (!_isDisposed) {
                 // NOTE: we should call any Dispose() method for any managed or unmanaged
                 // resource, if that resource provides a Dispose() method.
 
                 // Clean up managed resources, if explicit disposal...
-                if (isExplicitlyInitiatedDispose)
-                {
-                    // empty, for now
-                }
+                if (isExplicitlyInitiatedDispose) { /* empty, for now */ }
 
                 // Clean up unmanaged resources (if any) here...
                 TreeRoot.GoalText = string.Empty;
@@ -107,7 +92,6 @@ namespace Styx.Bot.Quest_Behaviors
                 // Call parent Dispose() (if it exists) here ...
                 base.Dispose();
             }
-
             _isDisposed = true;
         }
 
@@ -118,69 +102,46 @@ namespace Styx.Bot.Quest_Behaviors
         }
 
         #region Overrides of CustomForcedBehavior
-
-        protected override Composite CreateBehavior()
-        {
+        protected override Composite CreateBehavior() {
             return _root ?? (_root =
-                 new PrioritySelector(
-
-                     new Decorator(ret => UseRealitiveLocation,
-                                new Sequence(
-                                    new Action(delegate
-                                                   {
-
-                                                       Vector3 relLoc = OrigDestination;
-
-                                                       Vector3 worldLoc = Vector3.Transform(relLoc, Me.Transport.GetWorldMatrix());
-
-                                                       Destination = worldLoc;
-
-
-                                                       return RunStatus.Failure;
-                                                   }
-                                       ))),
-
-                            new Decorator(ret => Destination.Distance(Me.Location) <= 3 || !CheckInstance(),
-                                new Sequence(
-                                    new Action(ret => TreeRoot.StatusText = "Finished!"),
-                                    new WaitContinue(120,
-                                        new Action(delegate
-                                        {
-                                            _isBehaviorDone = true;
-                                            return RunStatus.Success;
-                                        }))
-                                    )),
-
-                            new Decorator(ret => Destination.Distance(Me.Location) > 3 && CheckInstance(),
-                                new Sequence(
-                                        new Action(ret => TreeRoot.StatusText = "Moving To Location - X: " + Destination.X + " Y: " + Destination.Y),
-                                        new Action(ret => WoWMovement.ClickToMove(Destination)),
-                                        new Action(ret => Thread.Sleep(50))
-                                    )
-                                )
-                    ));
+                new PrioritySelector(
+                    new Decorator(ret => UseRealitiveLocation,
+                        new Sequence(
+                            new Action(delegate {
+                                Vector3 relLoc = OrigDestination;
+                                Vector3 worldLoc = Vector3.Transform(relLoc, Me.Transport.GetWorldMatrix());
+                                Destination = worldLoc;
+                                return RunStatus.Failure;
+                            }
+                    ))),
+                    new Decorator(ret => Destination.Distance(Me.Location) <= 3 || !CheckInstance(),
+                        new Sequence(
+                            new Action(ret => TreeRoot.StatusText = "Finished!"),
+                            new WaitContinue(120,
+                                new Action(delegate {
+                                    _isBehaviorDone = true;
+                                    return RunStatus.Success;
+                                }
+                    )))),
+                    new Decorator(ret => Destination.Distance(Me.Location) > 3 && CheckInstance(),
+                        new Sequence(
+                            new Action(ret => TreeRoot.StatusText = "Moving To Location - X: " + Destination.X + " Y: " + Destination.Y),
+                            new Action(ret => WoWMovement.ClickToMove(Destination)),
+                            new Action(ret => Thread.Sleep(50))
+            ))));
         }
 
-
-        public override void Dispose()
-        {
+        public override void Dispose() {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
+        public override bool IsDone { get {
+            return (_isBehaviorDone     // normal completion
+                || !UtilIsProgressRequirementsMet(QuestId, QuestRequirementInLog, QuestRequirementComplete));
+        }}
 
-        public override bool IsDone
-        {
-            get
-            {
-                return (_isBehaviorDone     // normal completion
-                        || !UtilIsProgressRequirementsMet(QuestId, QuestRequirementInLog, QuestRequirementComplete));
-            }
-        }
-
-
-        public override void OnStart()
-        {
+        public override void OnStart() {
             // This reports problems, and stops BT processing if there was a problem with attributes...
             // We had to defer this action, as the 'profile line number' is not available during the element's
             // constructor call.
@@ -188,12 +149,8 @@ namespace Styx.Bot.Quest_Behaviors
 
             // If the quest is complete, this behavior is already done...
             // So we don't want to falsely inform the user of things that will be skipped.
-            if (!IsDone)
-            {
-                TreeRoot.GoalText = "CTMoving to " + DestinationName;
-            }
+            if (!IsDone) { TreeRoot.GoalText = "CTMoving to " + DestinationName; }
         }
-
         #endregion
     }
 }
