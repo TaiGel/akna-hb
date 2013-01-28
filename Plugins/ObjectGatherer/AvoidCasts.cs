@@ -195,17 +195,17 @@ namespace ObjectGatherer {
         #endregion
 
         #region AvoidFrontal
-        public static void AvoidFrontal(WoWUnit npcName, int radius, int range) { // npcName: NPC Name, radius: 0=Behind, range: Range of the spell
-            if (!StyxWoW.Me.IsFacing(npcName)) { npcName.Face(); }
+        public static void AvoidFrontal(WoWUnit npcID, int radius, int range) { // npcName: NPC ID number, radius: (how wide is the cone in deg) 0 is safely behind, range: Range of the spell
+            if (!StyxWoW.Me.IsFacing(npcID)) { npcID.Face(); }
 
-            var rotation = GetPositive(npcName.RotationDegrees);
+            var rotation = GetPositive(npcID.RotationDegrees);
             var invertRotation = GetInvert(rotation);
             var move = GetPositive(StyxWoW.Me.RotationDegrees) > invertRotation ? WoWMovement.MovementDirection.StrafeRight : WoWMovement.MovementDirection.StrafeLeft;
 
-            while (npcName.Distance2D <= range && npcName.IsCasting && ((radius == 0 && !StyxWoW.Me.IsSafelyBehind(npcName)) || 
-                  (radius != 0 && npcName.IsSafelyFacing(StyxWoW.Me, radius)) || npcName.Distance2D <= 2)) {
+            while (npcID.Distance2D <= range && npcID.IsCasting && ((radius == 0 && !StyxWoW.Me.IsSafelyBehind(npcID)) || 
+                  (radius != 0 && npcID.IsSafelyFacing(StyxWoW.Me, radius)) || npcID.Distance2D <= 2)) {
                 WoWMovement.Move(move);
-                npcName.Face();
+                npcID.Face();
             }
             WoWMovement.MoveStop();
         }
