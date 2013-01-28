@@ -51,10 +51,10 @@
 		<While Condition="!HasItem(86545)">
 			<CustomBehavior File="Message" Text="Moving to Mimic Octopus spot." LogColor="DeepSkyBlue" />
 			<CustomBehavior File="UserSettings" QuestId="31446" LootMobs="true" PullDistance="5" />
-			<CustomBehavior File="FlyTo" X="-1623.513" Y="-468.1575" Z="5.279323" />
+			<CustomBehavior File="FlyTo" X="-1613.339" Y="-445.7344" Z="1.731275" />
 			<CustomBehavior File="ForcedDismount" />
 			<CustomBehavior File="Message" Text="Fishing for Mimic Octopus." LogColor="DeepSkyBlue" />
-			<CustomBehavior File="MrFishIt" CollectItemId="86545" CollectItemCount="1" X="-1637.67" Y="-467.2975" Z="-1.477532" />
+			<CustomBehavior File="MrFishIt" CollectItemId="86545" CollectItemCount="1" X="-1629.033" Y="-443.3188" Z="-1.422268" />
 		</While>
 		<If Condition="HasItem(86542) &amp;&amp; HasItem(86544) &amp;&amp; HasItem(86545)">
 			<CustomBehavior File="Message" Text="Moving to Nat Pagle." LogColor="DeepSkyBlue" />
