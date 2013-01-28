@@ -58,7 +58,7 @@
 		</While>
 		<If Condition="HasItem(86542) &amp;&amp; HasItem(86544) &amp;&amp; HasItem(86545)">
 			<CustomBehavior File="Message" Text="Moving to Nat Pagle." LogColor="DeepSkyBlue" />
-			<CustomBehavior File="FlyTo" X="-1467.813" Y="-257.3199" Z="0.3229265" />
+			<CustomBehavior File="FlyTo" X="-1466.503" Y="-254.193" Z="0.320917" />
 			<CustomBehavior File="ForcedDismount" />
 		</If>
 		<While Condition="(!HasQuest(31443) &amp;&amp; !IsQuestCompleted(31443) &amp;&amp; HasItem(86542))">
