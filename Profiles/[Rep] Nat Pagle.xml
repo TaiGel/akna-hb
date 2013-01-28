@@ -1,0 +1,87 @@
+<HBProfile>
+	<Name>Nat Pagle Rare Fish Grind by AknA</Name>
+	<MinLevel>90</MinLevel>
+	<MaxLevel>99</MaxLevel>
+  
+	<MinDurability>0.2</MinDurability>
+	<MinFreeBagSlots>2</MinFreeBagSlots>
+  
+	<MailGrey>False</MailGrey>
+	<MailWhite>False</MailWhite>
+	<MailGreen>False</MailGreen>
+	<MailBlue>False</MailBlue>
+	<MailPurple>False</MailPurple>
+  
+	<SellGrey>True</SellGrey>
+	<SellWhite>False</SellWhite>
+	<SellGreen>False</SellGreen>
+	<SellBlue>False</SellBlue>
+	<SellPurple>False</SellPurple>
+  
+	<TargetElites>True</TargetElites>
+
+	<Vendors>
+		<Vendor Name="Nat Pagle" Entry="63721" Type="Repair" X="-1470.55" Y="-259.8472" Z="0.1111361" />
+	</Vendors>
+  
+	<AvoidMobs>
+	</AvoidMobs>
+   
+	<Blackspots>
+	</Blackspots>
+
+	<QuestOrder IgnoreCheckpoints="True" >
+		<CustomBehavior File="Message" Text="Beginning Nat Pagle Rare Fish Grind." LogColor="DeepSkyBlue" />
+		<While Condition="!HasItem(86544)">
+			<CustomBehavior File="Message" Text="Moving to Spinefish Alpha spot." LogColor="DeepSkyBlue" />
+			<CustomBehavior File="UserSettings" QuestId="31444" LootMobs="true" PullDistance="5" />
+			<CustomBehavior File="FlyTo" X="1913.907" Y="210.2701" Z="476.5693" />
+			<CustomBehavior File="ForcedDismount" />
+			<CustomBehavior File="Message" Text="Fishing for Spinefish Alpha." LogColor="DeepSkyBlue" />
+			<CustomBehavior File="MrFishIt" CollectItemId="86544" CollectItemCount="1" X="1918.664" Y="226.7789" Z="473.919" />
+		</While>
+		<While Condition="!HasItem(86542)">
+			<CustomBehavior File="Message" Text="Moving to Flying Tiger Gourami spot." LogColor="DeepSkyBlue" />
+			<CustomBehavior File="UserSettings" QuestId="31443" LootMobs="true" PullDistance="5" />
+			<CustomBehavior File="FlyTo" X="1620.523" Y="-2508.573" Z="152.4282" />
+			<CustomBehavior File="ForcedDismount" />
+			<CustomBehavior File="Message" Text="Fishing for Tiger Gourami." LogColor="DeepSkyBlue" />
+			<CustomBehavior File="MrFishIt" CollectItemId="86542" CollectItemCount="1" X="1632.48" Y="-2502.194" Z="150.5695" />
+		</While>
+		<While Condition="!HasItem(86545)">
+			<CustomBehavior File="Message" Text="Moving to Mimic Octopus spot." LogColor="DeepSkyBlue" />
+			<CustomBehavior File="UserSettings" QuestId="31446" LootMobs="true" PullDistance="5" />
+			<CustomBehavior File="FlyTo" X="-1623.513" Y="-468.1575" Z="5.279323" />
+			<CustomBehavior File="ForcedDismount" />
+			<CustomBehavior File="Message" Text="Fishing for Mimic Octopus." LogColor="DeepSkyBlue" />
+			<CustomBehavior File="MrFishIt" CollectItemId="86545" CollectItemCount="1" X="-1637.67" Y="-467.2975" Z="-1.477532" />
+		</While>
+		<If Condition="HasItem(86542) &amp;&amp; HasItem(86544) &amp;&amp; HasItem(86545)">
+			<CustomBehavior File="Message" Text="Moving to Nat Pagle." LogColor="DeepSkyBlue" />
+			<CustomBehavior File="FlyTo" X="-1467.813" Y="-257.3199" Z="0.3229265" />
+			<CustomBehavior File="ForcedDismount" />
+		</If>
+		<While Condition="(!HasQuest(31443) &amp;&amp; !IsQuestCompleted(31443) &amp;&amp; HasItem(86542))">
+			<CustomBehavior File="Misc\RunLua" Lua="UseItemByName(86542)" WaitTime="1500" /> <!-- Flying Tiger Gourami -->
+			<CustomBehavior File="Misc\RunLua" Lua="AcceptQuest()" WaitTime="1500" /> 
+		</While>
+		<While Condition="(!HasQuest(31444) &amp;&amp; !IsQuestCompleted(31444) &amp;&amp; HasItem(86544))">
+			<CustomBehavior File="Misc\RunLua" Lua="UseItemByName(86544)" WaitTime="1500" /> <!-- Spinefish Alpha -->
+			<CustomBehavior File="Misc\RunLua" Lua="AcceptQuest()" WaitTime="1500" /> 
+		</While>
+		<While Condition="(!HasQuest(31446) &amp;&amp; !IsQuestCompleted(31446) &amp;&amp; HasItem(86545))">
+			<CustomBehavior File="Misc\RunLua" Lua="UseItemByName(86545)" WaitTime="1500" /> <!-- Mimic Octopus -->
+			<CustomBehavior File="Misc\RunLua" Lua="AcceptQuest()" WaitTime="1500" /> 
+		</While>
+		<If Condition="((HasQuest(31443)) &amp;&amp; (IsQuestCompleted(31443)))">
+			<TurnIn QuestName="Flying Tiger Gourami" QuestId="31443" TurnInName="Nat Pagle" TurnInId="63721" />
+		</If>
+		<If Condition="((HasQuest(31444)) &amp;&amp; (IsQuestCompleted(31444)))">
+			<TurnIn QuestName="Spinefish Alpha" QuestId="31444" TurnInName="Nat Pagle" TurnInId="63721" />
+		</If>
+		<If Condition="((HasQuest(31446)) &amp;&amp; (IsQuestCompleted(31446)))">
+			<TurnIn QuestName="Mimic Octopus" QuestId="31446" TurnInName="Nat Pagle" TurnInId="63721" />
+		</If>
+		<CustomBehavior File="Message" Text="Done for today, come back tomorrow." LogColor="DeepSkyBlue" />
+	</QuestOrder>
+</HBProfile>
