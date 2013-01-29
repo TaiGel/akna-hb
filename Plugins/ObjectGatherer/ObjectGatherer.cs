@@ -116,7 +116,7 @@ namespace ObjectGatherer {
         #region Variables
         public override string Name { get { return "ObjectGatherer"; } }
         public override string Author { get { return "AknA"; } }
-        public override Version Version { get { return new Version(1, 5, 1); } }
+        public override Version Version { get { return new Version(1, 5, 2); } }
         public static void OGlog(string message, params object[] args) { Logging.Write(Colors.DeepSkyBlue, "[ObjectGatherer]: " + message, args); }
         public static LocalPlayer Me { get { return StyxWoW.Me; } }
         public static WoWPoint LocationId = WoWPoint.Empty;
@@ -222,6 +222,7 @@ namespace ObjectGatherer {
         private static void ConfirmBOP(object sender, LuaEventArgs e) {
             var a = e.Args[0].ToString();
             Lua.DoString("ConfirmLootSlot(" + a + ")");
+            Lua.DoString("StaticPopup1Button1:Click()");
         }
         #endregion
 
@@ -439,6 +440,7 @@ namespace ObjectGatherer {
                         Styx.CommonBot.Frames.LootFrame.Instance.LootAll();
                         MyTimer.Restart();
                         while (MyTimer.IsRunning && MyTimer.ElapsedMilliseconds < 1000) { }
+                        Lua.DoString("StaticPopup1Button1:Click()");
                     }
                     _interactway = 0;
                     LocationId = WoWPoint.Empty;
