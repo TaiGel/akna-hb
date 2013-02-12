@@ -90,6 +90,9 @@
  * Added a Lua Event to confirm BOP items so it won't be any issues with it anymore.
  * Added the ID's for Mysterious Camel Figurine (However, there is no logic to attack the mob 
  * in case you find the correct one, so you need to monitor the bot)
+ * 
+ * Ver 1.53
+ * Made a extra check in MoveToObject to see that we really can reach the object.
  */
 #endregion
 
@@ -116,7 +119,7 @@ namespace ObjectGatherer {
         #region Variables
         public override string Name { get { return "ObjectGatherer"; } }
         public override string Author { get { return "AknA"; } }
-        public override Version Version { get { return new Version(1, 5, 2); } }
+        public override Version Version { get { return new Version(1, 5, 3); } }
         public static void OGlog(string message, params object[] args) { Logging.Write(Colors.DeepSkyBlue, "[ObjectGatherer]: " + message, args); }
         public static LocalPlayer Me { get { return StyxWoW.Me; } }
         public static WoWPoint LocationId = WoWPoint.Empty;
@@ -470,7 +473,13 @@ namespace ObjectGatherer {
         #region MoveToObject
         private void MoveToObject() {
             while ((LocationId.Distance(Me.Location) > 3) && (CanSaflyLootCheck()) && (LocationId != WoWPoint.Empty)) {
-                if (!Me.IsMoving && Flightor.MountHelper.Mounted && _interactway != 3) { Flightor.MoveTo(LocationId); }
+                if (_interactway == 2) {
+                    if ((!ObjectToFind.InLineOfSight) && (!Navigator.CanNavigateFully(Me.Location, ObjectToFind.Location))) {
+                        LocationId = WoWPoint.Empty;
+                        break;
+                    }
+                }
+                if (!Me.IsMoving && Flightor.MountHelper.Mounted) { Flightor.MoveTo(LocationId); }
                 if (!Me.IsMoving && Navigator.CanNavigateFully(Me.Location, LocationId)) { Navigator.MoveTo(LocationId); }
             }
         }
