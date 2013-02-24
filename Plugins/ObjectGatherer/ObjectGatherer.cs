@@ -93,6 +93,10 @@
  * 
  * Ver 1.53
  * Made a extra check in MoveToObject to see that we really can reach the object.
+ * 
+ * Ver 1.54
+ * Rewrote the MoveTo logic.
+ * Allso readded the check if you're a ghost to not search for stuff (accidently removed it)
  */
 #endregion
 
@@ -119,7 +123,7 @@ namespace ObjectGatherer {
         #region Variables
         public override string Name { get { return "ObjectGatherer"; } }
         public override string Author { get { return "AknA"; } }
-        public override Version Version { get { return new Version(1, 5, 3); } }
+        public override Version Version { get { return new Version(1, 5, 4); } }
         public static void OGlog(string message, params object[] args) { Logging.Write(Colors.DeepSkyBlue, "[ObjectGatherer]: " + message, args); }
         public static LocalPlayer Me { get { return StyxWoW.Me; } }
         public static WoWPoint LocationId = WoWPoint.Empty;
@@ -145,7 +149,6 @@ namespace ObjectGatherer {
             _initialized = true;
             OGlog("Version " + Version + " Loaded.");
             Filterlist = UpdateFilterList();
-            Lua.Events.AttachEvent("LOOT_BIND_CONFIRM", ConfirmBOP);
             BotEvents.OnBotStarted += BotEvent_OnBotStarted;
             BotEvents.OnBotStopped += BotEvent_OnBotStopped;
             if (Me.GetSkill(SkillLine.Mining).CurrentValue != 0) { _miner = true; }
@@ -156,7 +159,6 @@ namespace ObjectGatherer {
 
         #region Dispose
         public override void Dispose() {
-            Lua.Events.DetachEvent("LOOT_BIND_CONFIRM", ConfirmBOP);
         }
         #endregion
 
@@ -169,7 +171,6 @@ namespace ObjectGatherer {
         public override void Pulse() {
             if (!_initialized) { return; }
             if (CheckPointTimer.ElapsedMilliseconds > 30000) { LocationId = WoWPoint.Empty; }
-            if (!CanSaflyLootCheck()) { LocationId = WoWPoint.Empty; }
             if (LocationId == WoWPoint.Empty && CanSaflyLootCheck()) { 
                 UpdateObjectList();
                 return;
@@ -187,29 +188,20 @@ namespace ObjectGatherer {
         #endregion
 
         #region BotEvent_OnBotStart
-        private void BotEvent_OnBotStarted(EventArgs args) {
+        private static void BotEvent_OnBotStarted(EventArgs args) {
             LocationId = WoWPoint.Empty;
         }
         #endregion
 
         #region BotEvent_OnBotStop
-        private void BotEvent_OnBotStopped(EventArgs args) {
+        private static void BotEvent_OnBotStopped(EventArgs args) {
             LocationId = WoWPoint.Empty;
-            Lua.Events.DetachEvent("LOOT_BIND_CONFIRM", ConfirmBOP);
         }
         #endregion
 
         #region CanSaflyLootCheck
         public bool CanSaflyLootCheck() {
-            if (Me.Combat) {
-                LocationId = WoWPoint.Empty;
-                return false;
-            }
-            if (Me.IsActuallyInCombat) {
-                LocationId = WoWPoint.Empty; 
-                return false;
-            }
-            if (Me.IsOnTransport) {
+            if (Me.Combat || Me.IsActuallyInCombat || Me.IsOnTransport || Me.IsGhost || Me.IsDead) {
                 LocationId = WoWPoint.Empty;
                 return false;
             }
@@ -218,14 +210,6 @@ namespace ObjectGatherer {
                 return false;
             }
             return true;
-        }
-        #endregion
-
-        #region ConfirmBOP
-        private static void ConfirmBOP(object sender, LuaEventArgs e) {
-            var a = e.Args[0].ToString();
-            Lua.DoString("ConfirmLootSlot(" + a + ")");
-            Lua.DoString("StaticPopup1Button1:Click()");
         }
         #endregion
 
@@ -464,6 +448,7 @@ namespace ObjectGatherer {
                         MyTimer.Restart();
                         while (MyTimer.IsRunning && MyTimer.ElapsedMilliseconds < 1000) { }
                     }
+                    _interactway = 0;
                     LocationId = WoWPoint.Empty;
                     break;
             }
@@ -472,15 +457,23 @@ namespace ObjectGatherer {
 
         #region MoveToObject
         private void MoveToObject() {
-            while ((LocationId.Distance(Me.Location) > 3) && (CanSaflyLootCheck()) && (LocationId != WoWPoint.Empty)) {
-                if (_interactway == 2) {
-                    if ((!ObjectToFind.InLineOfSight) && (!Navigator.CanNavigateFully(Me.Location, ObjectToFind.Location))) {
-                        LocationId = WoWPoint.Empty;
+            while ((LocationId.Distance(Me.Location) > 3) && (CanSaflyLootCheck())) {
+                switch (_interactway) {
+                    case 1 : // NPC
+                        if (!Me.IsMoving && Flightor.MountHelper.Mounted && NPCToFind.InLineOfSight) { Flightor.MoveTo(LocationId); }
+                        if (!Me.IsMoving && Navigator.CanNavigateFully(Me.Location, LocationId)) { Navigator.MoveTo(LocationId); }
                         break;
-                    }
+
+                    case 2 : // Object
+                        if (!Me.IsMoving && Flightor.MountHelper.Mounted && ObjectToFind.InLineOfSight) { Flightor.MoveTo(LocationId); }
+                        if (!Me.IsMoving && Navigator.CanNavigateFully(Me.Location, LocationId)) { Navigator.MoveTo(LocationId); }
+                        break;
+
+                    case 3: // Herb/Mine/Skin Corpses
+                        if (!Me.IsMoving && Flightor.MountHelper.Mounted && SHMToFind.InLineOfSight) { Flightor.MoveTo(LocationId); }
+                        if (!Me.IsMoving && Navigator.CanNavigateFully(Me.Location, LocationId)) { Navigator.MoveTo(LocationId); }
+                        break;
                 }
-                if (!Me.IsMoving && Flightor.MountHelper.Mounted) { Flightor.MoveTo(LocationId); }
-                if (!Me.IsMoving && Navigator.CanNavigateFully(Me.Location, LocationId)) { Navigator.MoveTo(LocationId); }
             }
         }
         #endregion
