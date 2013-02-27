@@ -97,6 +97,10 @@
  * Ver 1.54
  * Rewrote the MoveTo logic.
  * Allso readded the check if you're a ghost to not search for stuff (accidently removed it)
+ * 
+ * Ver 1.55
+ * Rewrote the loot logic for ObjectToFind (This should resolv the issues with BOP items)
+ * Fixed a issue that if you where in combat for too long then it wouldn't loot the item.
  */
 #endregion
 
@@ -169,17 +173,17 @@ namespace ObjectGatherer {
 
         #region Pulse
         public override void Pulse() {
-            if (!_initialized) { return; }
+            if (!_initialized || !CanSaflyLootCheck()) { return; }
             if (CheckPointTimer.ElapsedMilliseconds > 30000) { LocationId = WoWPoint.Empty; }
-            if (LocationId == WoWPoint.Empty && CanSaflyLootCheck()) { 
+            if (LocationId == WoWPoint.Empty) { 
                 UpdateObjectList();
                 return;
             }
-            if (LocationId.Distance(Me.Location) > 3 && CanSaflyLootCheck()) {
+            if (LocationId.Distance(Me.Location) > 3) {
                 MoveToObject();
                 return;
             }
-            if (LocationId.Distance(Me.Location) <= 3 && CanSaflyLootCheck()) { InteractWithObject(); }
+            if (LocationId.Distance(Me.Location) <= 3) { InteractWithObject(); }
         }
         #endregion
 
@@ -201,11 +205,15 @@ namespace ObjectGatherer {
 
         #region CanSaflyLootCheck
         public bool CanSaflyLootCheck() {
-            if (Me.Combat || Me.IsActuallyInCombat || Me.IsOnTransport || Me.IsGhost || Me.IsDead) {
-                LocationId = WoWPoint.Empty;
+            if (Me.Combat || Me.IsActuallyInCombat) {
+                CheckPointTimer.Restart();
                 return false;
             }
             if (ObjectManager.GetObjectsOfType<WoWUnit>().Any(unit => unit.Aggro || unit.PetAggro)) {
+                CheckPointTimer.Restart();
+                return false;
+            }
+            if (Me.IsOnTransport || Me.IsGhost || Me.IsDead) {
                 LocationId = WoWPoint.Empty;
                 return false;
             }
@@ -417,17 +425,12 @@ namespace ObjectGatherer {
                     ObjectToFind.Interact();
                     MyTimer.Restart();
                     while (MyTimer.IsRunning && MyTimer.ElapsedMilliseconds < 1500) {  }
-                    while (Me.IsCasting) {
-                        MyTimer.Restart();
-                        while (MyTimer.IsRunning && MyTimer.ElapsedMilliseconds < 1000) { }
-                    }
-                    MyTimer.Restart();
-                    while (MyTimer.IsRunning && MyTimer.ElapsedMilliseconds < 2500) {  }
-                    while (Styx.CommonBot.Frames.LootFrame.Instance.IsVisible) {
-                        Styx.CommonBot.Frames.LootFrame.Instance.LootAll();
-                        MyTimer.Restart();
-                        while (MyTimer.IsRunning && MyTimer.ElapsedMilliseconds < 1000) { }
-                        Lua.DoString("StaticPopup1Button1:Click()");
+                    while (ObjectToFind.InUse) {
+                        var lootslot = Convert.ToInt32(Lua.GetReturnValues("GetNumLootItems()"));
+                        for (var i = 0; i < lootslot; i++) {
+                            Lua.DoString("LootSlot(" + i + ")");
+                            Lua.DoString("ConfirmLootSlot(" + i + ")");
+                        }
                     }
                     _interactway = 0;
                     LocationId = WoWPoint.Empty;
@@ -506,10 +509,11 @@ namespace ObjectGatherer {
                     if (SHMToFind != s) {
                         OGlog("Moveing to Mine {0}", s.Name);
                         SHMToFind = s;
+                        _interactway = 3;
+                        WoWMovement.MoveStop();
+                        LocationId = WoWMovement.CalculatePointFrom(s.Location, 3);
+                        CheckPointTimer.Restart();
                     }
-                    LocationId = WoWMovement.CalculatePointFrom(s.Location, 3);
-                    _interactway = 3;
-                    WoWMovement.MoveStop();
                 }
                 #endregion
 
@@ -522,10 +526,11 @@ namespace ObjectGatherer {
                     if (SHMToFind != s) {
                         OGlog("Moveing to Herb {0}", s.Name);
                         SHMToFind = s;
+                        _interactway = 3;
+                        WoWMovement.MoveStop();
+                        LocationId = WoWMovement.CalculatePointFrom(s.Location, 3);
+                        CheckPointTimer.Restart();
                     }
-                    LocationId = WoWMovement.CalculatePointFrom(s.Location, 3);
-                    _interactway = 3;
-                    WoWMovement.MoveStop();
                 }
                 #endregion
 
@@ -538,14 +543,14 @@ namespace ObjectGatherer {
                     if (SHMToFind != s) {
                         OGlog("Moveing to Skin {0}", s.Name);
                         SHMToFind = s;
+                        _interactway = 3;
+                        WoWMovement.MoveStop();
+                        LocationId = WoWMovement.CalculatePointFrom(s.Location, 3);
+                        CheckPointTimer.Restart();
                     }
-                    LocationId = WoWMovement.CalculatePointFrom(s.Location, 3);
-                    _interactway = 3;
-                    WoWMovement.MoveStop();
                 }
                 #endregion
                 
-                CheckPointTimer.Restart();
             }
             #endregion
 
@@ -563,11 +568,11 @@ namespace ObjectGatherer {
                 if (NPCToFind != u) {
                     OGlog("Moving to {0}, to interact with {1}.", u.Location, u.Name);
                     NPCToFind = u;
+                    _interactway = 1;
+                    WoWMovement.MoveStop();
+                    LocationId = WoWMovement.CalculatePointFrom(u.Location, 3);
+                    CheckPointTimer.Restart();
                 }
-                LocationId = WoWMovement.CalculatePointFrom(u.Location, 3);
-                _interactway = 1;
-                CheckPointTimer.Restart();
-                WoWMovement.MoveStop();
             }
             #endregion
 
@@ -583,16 +588,17 @@ namespace ObjectGatherer {
                         OGlog("Found {0} at {1}, but can't get to it.", o.Name, o.Location);
                         ObjectToFind = o;
                     }
+                    LocationId = WoWPoint.Empty;
                     return;
                 }
                 if (ObjectToFind != o) {
                     OGlog("Moving to {0}, to pickup {1}.", o.Location, o.Name);
                     ObjectToFind = o;
+                    _interactway = 2;
+                    WoWMovement.MoveStop();
+                    LocationId = WoWMovement.CalculatePointFrom(o.Location, 3);
+                    CheckPointTimer.Restart();
                 }
-                LocationId = WoWMovement.CalculatePointFrom(o.Location, 3);
-                _interactway = 2;
-                CheckPointTimer.Restart();
-                WoWMovement.MoveStop();
             }
             #endregion
         }
