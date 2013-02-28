@@ -101,6 +101,9 @@
  * Ver 1.55
  * Rewrote the loot logic for ObjectToFind (This should resolv the issues with BOP items)
  * Fixed a issue that if you where in combat for too long then it wouldn't loot the item.
+ * 
+ * Ver 1.56
+ * Changed the loot logic abit more to make sure we have looted the item before moving again.
  */
 #endregion
 
@@ -127,7 +130,7 @@ namespace ObjectGatherer {
         #region Variables
         public override string Name { get { return "ObjectGatherer"; } }
         public override string Author { get { return "AknA"; } }
-        public override Version Version { get { return new Version(1, 5, 4); } }
+        public override Version Version { get { return new Version(1, 5, 6); } }
         public static void OGlog(string message, params object[] args) { Logging.Write(Colors.DeepSkyBlue, "[ObjectGatherer]: " + message, args); }
         public static LocalPlayer Me { get { return StyxWoW.Me; } }
         public static WoWPoint LocationId = WoWPoint.Empty;
@@ -422,34 +425,29 @@ namespace ObjectGatherer {
                     break;
 
                 case 2: // Object
-                    ObjectToFind.Interact();
+                    WoWMovement.MoveStop();
                     MyTimer.Restart();
-                    while (MyTimer.IsRunning && MyTimer.ElapsedMilliseconds < 1500) {  }
-                    while (ObjectToFind.InUse) {
-                        var lootslot = Convert.ToInt32(Lua.GetReturnValues("GetNumLootItems()"));
-                        for (var i = 0; i < lootslot; i++) {
-                            Lua.DoString("LootSlot(" + i + ")");
-                            Lua.DoString("ConfirmLootSlot(" + i + ")");
+                    while (ObjectToFind.CanUse() && CanSaflyLootCheck() && MyTimer.ElapsedMilliseconds < 3000) {
+                        if (!ObjectToFind.InUse) {
+                            ObjectToFind.Interact();
                         }
+                        Lua.DoString("LootSlot(1)");
+                        Lua.DoString("ConfirmLootSlot(1)");
+                        Styx.CommonBot.Frames.LootFrame.Instance.Close();
+                        WoWMovement.MoveStop();
                     }
                     _interactway = 0;
                     LocationId = WoWPoint.Empty;
                     break;
 
                 case 3: // Herb/Mine/Skin Corpses
+                    WoWMovement.MoveStop();
                     SHMToFind.Interact();
                     MyTimer.Restart();
-                    while (MyTimer.IsRunning && MyTimer.ElapsedMilliseconds < 1500) { }
-                    while (Me.IsCasting) {
-                        MyTimer.Restart();
-                        while (MyTimer.IsRunning && MyTimer.ElapsedMilliseconds < 1000) { }
-                    }
-                    MyTimer.Restart();
-                    while (MyTimer.IsRunning && MyTimer.ElapsedMilliseconds < 2500) {  }
-                    while (Styx.CommonBot.Frames.LootFrame.Instance.IsVisible) {
-                        Styx.CommonBot.Frames.LootFrame.Instance.LootAll();
-                        MyTimer.Restart();
-                        while (MyTimer.IsRunning && MyTimer.ElapsedMilliseconds < 1000) { }
+                    while (SHMToFind.CanSkin && CanSaflyLootCheck() && MyTimer.ElapsedMilliseconds < 3000) {
+                        Lua.DoString("LootSlot(1)");
+                        Styx.CommonBot.Frames.LootFrame.Instance.Close();
+                        WoWMovement.MoveStop();
                     }
                     _interactway = 0;
                     LocationId = WoWPoint.Empty;
