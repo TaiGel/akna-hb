@@ -33,21 +33,15 @@
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.groupBox11 = new System.Windows.Forms.GroupBox();
-            this.label1 = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.groupBox13 = new System.Windows.Forms.GroupBox();
             this.SHMC_CB = new System.Windows.Forms.CheckBox();
-            this.groupBox6 = new System.Windows.Forms.GroupBox();
             this.IAMTN_CB = new System.Windows.Forms.CheckBox();
-            this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.DS_CB = new System.Windows.Forms.CheckBox();
             this.groupBox5 = new System.Windows.Forms.GroupBox();
             this.IAMT_CB = new System.Windows.Forms.CheckBox();
-            this.groupBox4 = new System.Windows.Forms.GroupBox();
             this.GC_CB = new System.Windows.Forms.CheckBox();
-            this.groupBox7 = new System.Windows.Forms.GroupBox();
             this.NE_CB = new System.Windows.Forms.CheckBox();
-            this.groupBox8 = new System.Windows.Forms.GroupBox();
             this.OE_CB = new System.Windows.Forms.CheckBox();
             this.groupBox9 = new System.Windows.Forms.GroupBox();
             this.Q_CB = new System.Windows.Forms.CheckBox();
@@ -65,17 +59,16 @@
             this.label4 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
+            this.button2 = new System.Windows.Forms.Button();
+            this.button3 = new System.Windows.Forms.Button();
+            this.comboBox1 = new System.Windows.Forms.ComboBox();
+            this.label1 = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox11.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox13.SuspendLayout();
-            this.groupBox6.SuspendLayout();
-            this.groupBox3.SuspendLayout();
             this.groupBox5.SuspendLayout();
-            this.groupBox4.SuspendLayout();
-            this.groupBox7.SuspendLayout();
-            this.groupBox8.SuspendLayout();
             this.groupBox9.SuspendLayout();
             this.groupBox10.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -85,7 +78,7 @@
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(655, 431);
+            this.button1.Location = new System.Drawing.Point(655, 272);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(75, 23);
             this.button1.TabIndex = 0;
@@ -96,7 +89,7 @@
             // linkLabel1
             // 
             this.linkLabel1.AutoSize = true;
-            this.linkLabel1.Location = new System.Drawing.Point(12, 436);
+            this.linkLabel1.Location = new System.Drawing.Point(9, 269);
             this.linkLabel1.Name = "linkLabel1";
             this.linkLabel1.Size = new System.Drawing.Size(145, 13);
             this.linkLabel1.TabIndex = 1;
@@ -111,7 +104,7 @@
             this.tabControl1.Location = new System.Drawing.Point(12, 12);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(718, 413);
+            this.tabControl1.Size = new System.Drawing.Size(718, 254);
             this.tabControl1.TabIndex = 2;
             // 
             // tabPage1
@@ -121,7 +114,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(710, 387);
+            this.tabPage1.Size = new System.Drawing.Size(710, 228);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Settings";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -129,38 +122,26 @@
             // groupBox11
             // 
             this.groupBox11.Controls.Add(this.label1);
+            this.groupBox11.Controls.Add(this.comboBox1);
+            this.groupBox11.Controls.Add(this.button3);
+            this.groupBox11.Controls.Add(this.button2);
             this.groupBox11.Location = new System.Drawing.Point(430, 6);
             this.groupBox11.Name = "groupBox11";
-            this.groupBox11.Size = new System.Drawing.Size(274, 371);
+            this.groupBox11.Size = new System.Drawing.Size(274, 213);
             this.groupBox11.TabIndex = 1;
             this.groupBox11.TabStop = false;
-            this.groupBox11.Text = "Advanced Options";
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(61, 169);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(152, 25);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "Coming Soon";
+            this.groupBox11.Text = "Not working yet!!!";
             // 
             // groupBox1
             // 
             this.groupBox1.Controls.Add(this.groupBox13);
-            this.groupBox1.Controls.Add(this.groupBox6);
-            this.groupBox1.Controls.Add(this.groupBox3);
             this.groupBox1.Controls.Add(this.groupBox5);
-            this.groupBox1.Controls.Add(this.groupBox4);
-            this.groupBox1.Controls.Add(this.groupBox7);
-            this.groupBox1.Controls.Add(this.groupBox8);
             this.groupBox1.Controls.Add(this.groupBox9);
             this.groupBox1.Controls.Add(this.groupBox10);
             this.groupBox1.Controls.Add(this.groupBox2);
             this.groupBox1.Location = new System.Drawing.Point(6, 6);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(418, 371);
+            this.groupBox1.Size = new System.Drawing.Size(418, 213);
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "General Settings";
@@ -168,7 +149,7 @@
             // groupBox13
             // 
             this.groupBox13.Controls.Add(this.SHMC_CB);
-            this.groupBox13.Location = new System.Drawing.Point(212, 183);
+            this.groupBox13.Location = new System.Drawing.Point(212, 144);
             this.groupBox13.Name = "groupBox13";
             this.groupBox13.Size = new System.Drawing.Size(200, 47);
             this.groupBox13.TabIndex = 1;
@@ -186,20 +167,10 @@
             this.SHMC_CB.UseVisualStyleBackColor = true;
             this.SHMC_CB.CheckedChanged += new System.EventHandler(this.SHMC_CB_CheckedChanged);
             // 
-            // groupBox6
-            // 
-            this.groupBox6.Controls.Add(this.IAMTN_CB);
-            this.groupBox6.Location = new System.Drawing.Point(6, 235);
-            this.groupBox6.Name = "groupBox6";
-            this.groupBox6.Size = new System.Drawing.Size(200, 48);
-            this.groupBox6.TabIndex = 1;
-            this.groupBox6.TabStop = false;
-            this.groupBox6.Text = "Is Another Man\'s Treasure NPC\'s";
-            // 
             // IAMTN_CB
             // 
             this.IAMTN_CB.AutoSize = true;
-            this.IAMTN_CB.Location = new System.Drawing.Point(7, 20);
+            this.IAMTN_CB.Location = new System.Drawing.Point(6, 43);
             this.IAMTN_CB.Name = "IAMTN_CB";
             this.IAMTN_CB.Size = new System.Drawing.Size(182, 17);
             this.IAMTN_CB.TabIndex = 0;
@@ -207,20 +178,10 @@
             this.IAMTN_CB.UseVisualStyleBackColor = true;
             this.IAMTN_CB.CheckedChanged += new System.EventHandler(this.IAMTN_CB_CheckedChanged);
             // 
-            // groupBox3
-            // 
-            this.groupBox3.Controls.Add(this.DS_CB);
-            this.groupBox3.Location = new System.Drawing.Point(6, 73);
-            this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(200, 48);
-            this.groupBox3.TabIndex = 1;
-            this.groupBox3.TabStop = false;
-            this.groupBox3.Text = "Dark Soil";
-            // 
             // DS_CB
             // 
             this.DS_CB.AutoSize = true;
-            this.DS_CB.Location = new System.Drawing.Point(7, 20);
+            this.DS_CB.Location = new System.Drawing.Point(6, 42);
             this.DS_CB.Name = "DS_CB";
             this.DS_CB.Size = new System.Drawing.Size(69, 17);
             this.DS_CB.TabIndex = 0;
@@ -230,13 +191,14 @@
             // 
             // groupBox5
             // 
+            this.groupBox5.Controls.Add(this.IAMTN_CB);
             this.groupBox5.Controls.Add(this.IAMT_CB);
-            this.groupBox5.Location = new System.Drawing.Point(6, 181);
+            this.groupBox5.Location = new System.Drawing.Point(6, 19);
             this.groupBox5.Name = "groupBox5";
-            this.groupBox5.Size = new System.Drawing.Size(200, 48);
+            this.groupBox5.Size = new System.Drawing.Size(200, 66);
             this.groupBox5.TabIndex = 1;
             this.groupBox5.TabStop = false;
-            this.groupBox5.Text = "Is Another Man\'s Treasure";
+            this.groupBox5.Text = "Achievements";
             // 
             // IAMT_CB
             // 
@@ -249,20 +211,10 @@
             this.IAMT_CB.UseVisualStyleBackColor = true;
             this.IAMT_CB.CheckedChanged += new System.EventHandler(this.IAMT_CB_CheckedChanged);
             // 
-            // groupBox4
-            // 
-            this.groupBox4.Controls.Add(this.GC_CB);
-            this.groupBox4.Location = new System.Drawing.Point(6, 127);
-            this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(200, 48);
-            this.groupBox4.TabIndex = 1;
-            this.groupBox4.TabStop = false;
-            this.groupBox4.Text = "Gold Coins";
-            // 
             // GC_CB
             // 
             this.GC_CB.AutoSize = true;
-            this.GC_CB.Location = new System.Drawing.Point(7, 20);
+            this.GC_CB.Location = new System.Drawing.Point(6, 19);
             this.GC_CB.Name = "GC_CB";
             this.GC_CB.Size = new System.Drawing.Size(77, 17);
             this.GC_CB.TabIndex = 0;
@@ -270,20 +222,10 @@
             this.GC_CB.UseVisualStyleBackColor = true;
             this.GC_CB.CheckedChanged += new System.EventHandler(this.GC_CB_CheckedChanged);
             // 
-            // groupBox7
-            // 
-            this.groupBox7.Controls.Add(this.NE_CB);
-            this.groupBox7.Location = new System.Drawing.Point(6, 289);
-            this.groupBox7.Name = "groupBox7";
-            this.groupBox7.Size = new System.Drawing.Size(200, 48);
-            this.groupBox7.TabIndex = 1;
-            this.groupBox7.TabStop = false;
-            this.groupBox7.Text = "Netherwing Egg";
-            // 
             // NE_CB
             // 
             this.NE_CB.AutoSize = true;
-            this.NE_CB.Location = new System.Drawing.Point(7, 20);
+            this.NE_CB.Location = new System.Drawing.Point(6, 65);
             this.NE_CB.Name = "NE_CB";
             this.NE_CB.Size = new System.Drawing.Size(102, 17);
             this.NE_CB.TabIndex = 0;
@@ -291,20 +233,10 @@
             this.NE_CB.UseVisualStyleBackColor = true;
             this.NE_CB.CheckedChanged += new System.EventHandler(this.NE_CB_CheckedChanged);
             // 
-            // groupBox8
-            // 
-            this.groupBox8.Controls.Add(this.OE_CB);
-            this.groupBox8.Location = new System.Drawing.Point(212, 19);
-            this.groupBox8.Name = "groupBox8";
-            this.groupBox8.Size = new System.Drawing.Size(200, 48);
-            this.groupBox8.TabIndex = 1;
-            this.groupBox8.TabStop = false;
-            this.groupBox8.Text = "Onyx Egg";
-            // 
             // OE_CB
             // 
             this.OE_CB.AutoSize = true;
-            this.OE_CB.Location = new System.Drawing.Point(7, 20);
+            this.OE_CB.Location = new System.Drawing.Point(6, 88);
             this.OE_CB.Name = "OE_CB";
             this.OE_CB.Size = new System.Drawing.Size(72, 17);
             this.OE_CB.TabIndex = 0;
@@ -315,9 +247,9 @@
             // groupBox9
             // 
             this.groupBox9.Controls.Add(this.Q_CB);
-            this.groupBox9.Location = new System.Drawing.Point(212, 129);
+            this.groupBox9.Location = new System.Drawing.Point(212, 91);
             this.groupBox9.Name = "groupBox9";
-            this.groupBox9.Size = new System.Drawing.Size(200, 48);
+            this.groupBox9.Size = new System.Drawing.Size(200, 47);
             this.groupBox9.TabIndex = 1;
             this.groupBox9.TabStop = false;
             this.groupBox9.Text = "Quests";
@@ -335,18 +267,19 @@
             // 
             // groupBox10
             // 
+            this.groupBox10.Controls.Add(this.GC_CB);
             this.groupBox10.Controls.Add(this.TC_CB);
-            this.groupBox10.Location = new System.Drawing.Point(212, 75);
+            this.groupBox10.Location = new System.Drawing.Point(212, 19);
             this.groupBox10.Name = "groupBox10";
-            this.groupBox10.Size = new System.Drawing.Size(200, 48);
+            this.groupBox10.Size = new System.Drawing.Size(200, 66);
             this.groupBox10.TabIndex = 1;
             this.groupBox10.TabStop = false;
-            this.groupBox10.Text = "Treasure Chests";
+            this.groupBox10.Text = "Objects";
             // 
             // TC_CB
             // 
             this.TC_CB.AutoSize = true;
-            this.TC_CB.Location = new System.Drawing.Point(7, 20);
+            this.TC_CB.Location = new System.Drawing.Point(6, 42);
             this.TC_CB.Name = "TC_CB";
             this.TC_CB.Size = new System.Drawing.Size(103, 17);
             this.TC_CB.TabIndex = 0;
@@ -356,18 +289,21 @@
             // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.NE_CB);
+            this.groupBox2.Controls.Add(this.OE_CB);
+            this.groupBox2.Controls.Add(this.DS_CB);
             this.groupBox2.Controls.Add(this.AGLC_CB);
-            this.groupBox2.Location = new System.Drawing.Point(6, 19);
+            this.groupBox2.Location = new System.Drawing.Point(6, 91);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(200, 48);
+            this.groupBox2.Size = new System.Drawing.Size(200, 114);
             this.groupBox2.TabIndex = 0;
             this.groupBox2.TabStop = false;
-            this.groupBox2.Text = "Ancient Guo-Lai Cashe";
+            this.groupBox2.Text = "Reputation";
             // 
             // AGLC_CB
             // 
             this.AGLC_CB.AutoSize = true;
-            this.AGLC_CB.Location = new System.Drawing.Point(7, 20);
+            this.AGLC_CB.Location = new System.Drawing.Point(6, 19);
             this.AGLC_CB.Name = "AGLC_CB";
             this.AGLC_CB.Size = new System.Drawing.Size(135, 17);
             this.AGLC_CB.TabIndex = 0;
@@ -381,7 +317,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(710, 387);
+            this.tabPage2.Size = new System.Drawing.Size(710, 242);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "About";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -486,11 +422,47 @@
             this.label2.TabIndex = 0;
             this.label2.Text = "ObjectGatherer is a complete recode of a plugin made by LiquidAtoR.";
             // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(193, 19);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(75, 23);
+            this.button2.TabIndex = 2;
+            this.button2.Text = "Add";
+            this.button2.UseVisualStyleBackColor = true;
+            // 
+            // button3
+            // 
+            this.button3.Location = new System.Drawing.Point(193, 48);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(75, 23);
+            this.button3.TabIndex = 3;
+            this.button3.Text = "Delete";
+            this.button3.UseVisualStyleBackColor = true;
+            // 
+            // comboBox1
+            // 
+            this.comboBox1.FormattingEnabled = true;
+            this.comboBox1.Location = new System.Drawing.Point(7, 20);
+            this.comboBox1.Name = "comboBox1";
+            this.comboBox1.Size = new System.Drawing.Size(180, 21);
+            this.comboBox1.TabIndex = 4;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Underline))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.Location = new System.Drawing.Point(16, 109);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(231, 17);
+            this.label1.TabIndex = 5;
+            this.label1.Text = "This part isn\'t implemented yet";
+            // 
             // ObjectGatherer_Gui
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(742, 466);
+            this.ClientSize = new System.Drawing.Size(742, 304);
             this.Controls.Add(this.tabControl1);
             this.Controls.Add(this.linkLabel1);
             this.Controls.Add(this.button1);
@@ -505,18 +477,8 @@
             this.groupBox1.ResumeLayout(false);
             this.groupBox13.ResumeLayout(false);
             this.groupBox13.PerformLayout();
-            this.groupBox6.ResumeLayout(false);
-            this.groupBox6.PerformLayout();
-            this.groupBox3.ResumeLayout(false);
-            this.groupBox3.PerformLayout();
             this.groupBox5.ResumeLayout(false);
             this.groupBox5.PerformLayout();
-            this.groupBox4.ResumeLayout(false);
-            this.groupBox4.PerformLayout();
-            this.groupBox7.ResumeLayout(false);
-            this.groupBox7.PerformLayout();
-            this.groupBox8.ResumeLayout(false);
-            this.groupBox8.PerformLayout();
             this.groupBox9.ResumeLayout(false);
             this.groupBox9.PerformLayout();
             this.groupBox10.ResumeLayout(false);
@@ -541,12 +503,7 @@
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.GroupBox groupBox10;
         private System.Windows.Forms.GroupBox groupBox2;
-        private System.Windows.Forms.GroupBox groupBox3;
-        private System.Windows.Forms.GroupBox groupBox4;
         private System.Windows.Forms.GroupBox groupBox5;
-        private System.Windows.Forms.GroupBox groupBox6;
-        private System.Windows.Forms.GroupBox groupBox7;
-        private System.Windows.Forms.GroupBox groupBox8;
         private System.Windows.Forms.GroupBox groupBox9;
         private System.Windows.Forms.CheckBox AGLC_CB;
         private System.Windows.Forms.CheckBox IAMTN_CB;
@@ -558,7 +515,6 @@
         private System.Windows.Forms.CheckBox Q_CB;
         private System.Windows.Forms.CheckBox TC_CB;
         private System.Windows.Forms.GroupBox groupBox11;
-        private System.Windows.Forms.Label label1;
         private System.Windows.Forms.GroupBox groupBox12;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label5;
@@ -570,5 +526,9 @@
         private System.Windows.Forms.LinkLabel linkLabel2;
         private System.Windows.Forms.GroupBox groupBox13;
         private System.Windows.Forms.CheckBox SHMC_CB;
+        private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.ComboBox comboBox1;
     }
 }
