@@ -104,6 +104,10 @@
  * 
  * Ver 1.56
  * Changed the loot logic abit more to make sure we have looted the item before moving again.
+ * 
+ * Ver 1.57
+ * Updated the GUI, move the buttons around abit and catogarized it.
+ * Allso added new things to the GUI (not working yet) but for future updates.
  */
 #endregion
 
@@ -130,7 +134,7 @@ namespace ObjectGatherer {
         #region Variables
         public override string Name { get { return "ObjectGatherer"; } }
         public override string Author { get { return "AknA"; } }
-        public override Version Version { get { return new Version(1, 5, 6); } }
+        public override Version Version { get { return new Version(1, 5, 7); } }
         public static void OGlog(string message, params object[] args) { Logging.Write(Colors.DeepSkyBlue, "[ObjectGatherer]: " + message, args); }
         public static LocalPlayer Me { get { return StyxWoW.Me; } }
         public static WoWPoint LocationId = WoWPoint.Empty;
