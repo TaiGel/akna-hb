@@ -1,8 +1,8 @@
-## Interface: 50100
-## Author: Janniie - Stormreaver EU
+## Interface: 50200
+## Author: Janniie - Modified by AknA
 ## Title: |cffffff00<|r|cff16ABB5SGI|r|cffffff00>|r |cff16ABB5SuperGuildInvite|r
-## Notes: Version 6.2
-## Version: 6.2
+## Notes: Version 9.0
+## Version: 9.0
 ## SavedVariables: SGI_DATA
 ## SavedVariablesPerCharacter: SGI_BACKUP
 
