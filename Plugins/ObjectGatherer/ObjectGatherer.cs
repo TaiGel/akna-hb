@@ -369,6 +369,7 @@ namespace ObjectGatherer {
             214407, // Mo-Mo's Treasure Chest (Contains ~ 9G)
             214337, // Stash of Gems (few green uncut MoP gems and ~ 7G)
             214337, // Offering of Rememberance (Contains ~ 30G and debuff turns you grey)
+            218593, // Trove of the Thunder King
         };
         #endregion
 
