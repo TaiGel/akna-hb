@@ -495,7 +495,7 @@ namespace ObjectGatherer {
                       .Where(o => (o.Distance2D <= LootTargeting.LootRadius) && Filterlist.Contains(o.Entry) && o.CanUse())
                       .OrderBy(o => o.Distance)
                       .ToList();
-            SHMList = ObjectManager.GetObjectsOfType<WoWUnit>().Where(s => s.Skinnable && s.Distance < 20)
+            SHMList = ObjectManager.GetObjectsOfType<WoWUnit>().Where(s => s.CanSkin && s.Distance < 20)
                       .OrderBy(s => s.Distance)
                       .ToList();
 
