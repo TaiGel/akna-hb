@@ -115,7 +115,7 @@ namespace IronpawTokens {
                 if (!MerchantFrame.Instance.IsVisible) { shopNPC.Interact(); }
 
                 if (UpdateShoppingList(74856) >= 20) { // Jade Lungfish
-                    var a = BagCount(UpdateShoppingList(74859), UpdateShoppingList(87678), 20);
+                    var a = BagCount(UpdateShoppingList(74856), UpdateShoppingList(87678), 20);
                     if (Me.FreeBagSlots >= 2 && !_buying && (a > 0)) {
                         _buying = true;
                         MerchantBuy("Empty Jade Lungfish Container", a);
