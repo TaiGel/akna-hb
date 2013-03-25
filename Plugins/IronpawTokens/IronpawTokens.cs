@@ -29,7 +29,7 @@ namespace IronpawTokens {
         #region Variables
         public override string Name { get { return "IronpawTokens"; } }
         public override string Author { get { return "AknA"; } }
-        public override Version Version { get { return new Version(1, 0, 0); } }
+        public override Version Version { get { return new Version(1, 1, 0); } }
         public static void IpTlog(string message, params object[] args) { Logging.Write(Colors.DeepSkyBlue, "[IronpawTokens]: " + message, args); }
         public static LocalPlayer Me { get { return StyxWoW.Me; } }
         public static uint[] ItemList;
