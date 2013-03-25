@@ -190,23 +190,21 @@ namespace IronpawTokens {
         #region CreateGroceries
         private static void CreateGroceries() {
             if (MerchantFrame.Instance.IsVisible) { MerchantFrame.Instance.Close(); }
-            if ((BagCount(UpdateShoppingList(74859), UpdateShoppingList(87678), 20) <= 0) && (BagCount(UpdateShoppingList(74857), UpdateShoppingList(87679), 20) <= 0) &&
-                (BagCount(UpdateShoppingList(74859), UpdateShoppingList(87680), 20) <= 0) && (BagCount(UpdateShoppingList(74860), UpdateShoppingList(87681), 20) <= 0) &&
-                (BagCount(UpdateShoppingList(74861), UpdateShoppingList(87682), 20) <= 0) && (BagCount(UpdateShoppingList(74863), UpdateShoppingList(87683), 20) <= 0) &&
-                (BagCount(UpdateShoppingList(74864), UpdateShoppingList(87684), 20) <= 0) && (BagCount(UpdateShoppingList(74865), UpdateShoppingList(87685), 20) <= 0) &&
-                (BagCount(UpdateShoppingList(74866), UpdateShoppingList(87686), 60) <= 0)) {
+            if ((UpdateShoppingList(74859) < 20) && (UpdateShoppingList(74857) < 20) && (UpdateShoppingList(74859) < 20) && (UpdateShoppingList(74860) < 20) &&
+                (UpdateShoppingList(74861) < 20) && (UpdateShoppingList(74863) < 20) && (UpdateShoppingList(74864) < 20) && (UpdateShoppingList(74865) < 20) &&
+                (UpdateShoppingList(74866) < 60)) {
                 _shoppingStep = 2;
                 return;
             }
-            if ((HaveItem(87678)) && (!Me.IsCasting) && (BagCount(UpdateShoppingList(74859), UpdateShoppingList(87678), 20) > 0)) { _itemToUse.Use(); } // Empty Jade Lungfish Container
-            if ((HaveItem(87679)) && (!Me.IsCasting) && (BagCount(UpdateShoppingList(74857), UpdateShoppingList(87679), 20) > 0)) { _itemToUse.Use(); } // Empty Giant Mantis Shrimp Container
-            if ((HaveItem(87680)) && (!Me.IsCasting) && (BagCount(UpdateShoppingList(74859), UpdateShoppingList(87680), 20) > 0)) { _itemToUse.Use(); } // Empty Emperor Salmon Container
-            if ((HaveItem(87681)) && (!Me.IsCasting) && (BagCount(UpdateShoppingList(74860), UpdateShoppingList(87681), 20) > 0)) { _itemToUse.Use(); } // Empty Redbelly Mandarin Container
-            if ((HaveItem(87682)) && (!Me.IsCasting) && (BagCount(UpdateShoppingList(74861), UpdateShoppingList(87682), 20) > 0)) { _itemToUse.Use(); } // Empty Tiger Gourami Container
-            if ((HaveItem(87683)) && (!Me.IsCasting) && (BagCount(UpdateShoppingList(74863), UpdateShoppingList(87683), 20) > 0)) { _itemToUse.Use(); } // Empty Jewel Danio Container
-            if ((HaveItem(87684)) && (!Me.IsCasting) && (BagCount(UpdateShoppingList(74864), UpdateShoppingList(87684), 20) > 0)) { _itemToUse.Use(); } // Empty Reef Octopus Container
-            if ((HaveItem(87685)) && (!Me.IsCasting) && (BagCount(UpdateShoppingList(74865), UpdateShoppingList(87685), 20) > 0)) { _itemToUse.Use(); } // Empty Krasarang Paddlefish Container
-            if ((HaveItem(87686)) && (!Me.IsCasting) && (BagCount(UpdateShoppingList(74866), UpdateShoppingList(87686), 60) > 0)) { _itemToUse.Use(); } // Empty Golden Carp Container
+            if ((HaveItem(87678)) && (!Me.IsCasting) && (UpdateShoppingList(74859) >= 20)) { _itemToUse.Use(); } // Empty Jade Lungfish Container
+            if ((HaveItem(87679)) && (!Me.IsCasting) && (UpdateShoppingList(74857) >= 20)) { _itemToUse.Use(); } // Empty Giant Mantis Shrimp Container
+            if ((HaveItem(87680)) && (!Me.IsCasting) && (UpdateShoppingList(74859) >= 20)) { _itemToUse.Use(); } // Empty Emperor Salmon Container
+            if ((HaveItem(87681)) && (!Me.IsCasting) && (UpdateShoppingList(74860) >= 20)) { _itemToUse.Use(); } // Empty Redbelly Mandarin Container
+            if ((HaveItem(87682)) && (!Me.IsCasting) && (UpdateShoppingList(74861) >= 20)) { _itemToUse.Use(); } // Empty Tiger Gourami Container
+            if ((HaveItem(87683)) && (!Me.IsCasting) && (UpdateShoppingList(74863) >= 20)) { _itemToUse.Use(); } // Empty Jewel Danio Container
+            if ((HaveItem(87684)) && (!Me.IsCasting) && (UpdateShoppingList(74864) >= 20)) { _itemToUse.Use(); } // Empty Reef Octopus Container
+            if ((HaveItem(87685)) && (!Me.IsCasting) && (UpdateShoppingList(74865) >= 20)) { _itemToUse.Use(); } // Empty Krasarang Paddlefish Container
+            if ((HaveItem(87686)) && (!Me.IsCasting) && (UpdateShoppingList(74866) >= 60)) { _itemToUse.Use(); } // Empty Golden Carp Container
         }
         #endregion
 
