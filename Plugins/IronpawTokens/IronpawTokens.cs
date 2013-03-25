@@ -3,12 +3,31 @@
  * Ironpaw Tokens by AknA
  * 
  * Made this plugin after a request by Kuat on HB forums.
+ * 
+ * Scan what area you are in - if you're not in the Halfhill Market then plugin will do nothing.
+ * If you are in the Halfhill Market it will scan your bags for ingredients.
+ * If you have enough ingredients (and you have selected it in the GUI), it will move to the vendor.
+ * It will buy "Empty 'ingredients type' Container" acording to how much you have of each ingredient.
+ * It will turn the Empty Containers with ingredients into Bundle of Groceries.
+ * It will move to the quest npc.
+ * It will turn in all Bundle of Groceries into Ironpaw Tokens.
+ * 
+ * Ver 1.00
+ * First official release
+ * Only Fishes working.
+ * 
+ * Ver 1.10
+ * Fixed a error I made when I fixed a other error :P
+ * 
+ * Ver 1.12
+ * Had the wrong itemID for Jade Lungfish
+ * 
+ * Ver 1.50
+ * Fishes, Meats and Vegetables should all now be working.
  */
 #endregion
 
 #region Styx Namespace
-
-using System.Globalization;
 using Styx;
 using Styx.Common;
 using Styx.CommonBot.Frames;
@@ -31,7 +50,7 @@ namespace IronpawTokens {
         #region Variables
         public override string Name { get { return "IronpawTokens"; } }
         public override string Author { get { return "AknA"; } }
-        public override Version Version { get { return new Version(1, 1, 2); } }
+        public override Version Version { get { return new Version(1, 5, 0); } }
         public static void IpTlog(string message, params object[] args) { Logging.Write(Colors.DeepSkyBlue, "[IronpawTokens]: " + message, args); }
         public static LocalPlayer Me { get { return StyxWoW.Me; } }
         public static uint[] ItemList;
@@ -83,8 +102,8 @@ namespace IronpawTokens {
 
         #region CheckForLocation
         private static bool CheckForLocation() {
-            return (ObjectManager.GetObjectsOfType<WoWUnit>().FirstOrDefault(npc => npc.Entry == 64395) != null) && 
-                   (ObjectManager.GetObjectsOfType<WoWUnit>().FirstOrDefault(npc => npc.Entry == 64940) != null);
+            return ((ObjectManager.GetObjectsOfType<WoWUnit>().FirstOrDefault(npc => npc.Entry == 64395) != null) && 
+                   (ObjectManager.GetObjectsOfType<WoWUnit>().FirstOrDefault(npc => npc.Entry == 64940) != null));
         }
         #endregion
 
@@ -98,15 +117,22 @@ namespace IronpawTokens {
 
         #region GoShopping
         private static void GoShopping() {
-            if ((BagCount(UpdateShoppingList(74856), UpdateShoppingList(87678), 20) <= 0) && (BagCount(UpdateShoppingList(74857), UpdateShoppingList(87679), 20) <= 0) &&
-                (BagCount(UpdateShoppingList(74859), UpdateShoppingList(87680), 20) <= 0) && (BagCount(UpdateShoppingList(74860), UpdateShoppingList(87681), 20) <= 0) &&
-                (BagCount(UpdateShoppingList(74861), UpdateShoppingList(87682), 20) <= 0) && (BagCount(UpdateShoppingList(74863), UpdateShoppingList(87683), 20) <= 0) &&
-                (BagCount(UpdateShoppingList(74864), UpdateShoppingList(87684), 20) <= 0) && (BagCount(UpdateShoppingList(74865), UpdateShoppingList(87685), 20) <= 0) &&
-                (BagCount(UpdateShoppingList(74866), UpdateShoppingList(87686), 60) <= 0)) {
+            if ((BagCount(UpdateShoppingList(74856), UpdateShoppingList(87678), 20)  <= 0) && (BagCount(UpdateShoppingList(74857), UpdateShoppingList(87679), 20)  <= 0) &&
+                (BagCount(UpdateShoppingList(74859), UpdateShoppingList(87680), 20)  <= 0) && (BagCount(UpdateShoppingList(74860), UpdateShoppingList(87681), 20)  <= 0) &&
+                (BagCount(UpdateShoppingList(74861), UpdateShoppingList(87682), 20)  <= 0) && (BagCount(UpdateShoppingList(74863), UpdateShoppingList(87683), 20)  <= 0) &&
+                (BagCount(UpdateShoppingList(74864), UpdateShoppingList(87684), 20)  <= 0) && (BagCount(UpdateShoppingList(74865), UpdateShoppingList(87685), 20)  <= 0) &&
+                (BagCount(UpdateShoppingList(74866), UpdateShoppingList(87686), 60)  <= 0) && 
+                (BagCount(UpdateShoppingList(74833), UpdateShoppingList(87658), 20)  <= 0) && (BagCount(UpdateShoppingList(74834), UpdateShoppingList(87659), 20)  <= 0) && 
+                (BagCount(UpdateShoppingList(74837), UpdateShoppingList(87660), 20)  <= 0) && (BagCount(UpdateShoppingList(74838), UpdateShoppingList(87661), 20)  <= 0) && 
+                (BagCount(UpdateShoppingList(74839), UpdateShoppingList(87662), 20)  <= 0) && (BagCount(UpdateShoppingList(75014), UpdateShoppingList(87687), 20)  <= 0) && 
+                (BagCount(UpdateShoppingList(74840), UpdateShoppingList(87663), 100) <= 0) && (BagCount(UpdateShoppingList(74841), UpdateShoppingList(87664), 100) <= 0) && 
+                (BagCount(UpdateShoppingList(74842), UpdateShoppingList(87665), 100) <= 0) && (BagCount(UpdateShoppingList(74843), UpdateShoppingList(87666), 100) <= 0) && 
+                (BagCount(UpdateShoppingList(74844), UpdateShoppingList(87667), 100) <= 0) && (BagCount(UpdateShoppingList(74846), UpdateShoppingList(87669), 100) <= 0) && 
+                (BagCount(UpdateShoppingList(74847), UpdateShoppingList(87670), 100) <= 0) && (BagCount(UpdateShoppingList(74848), UpdateShoppingList(87671), 100) <= 0) && 
+                (BagCount(UpdateShoppingList(74849), UpdateShoppingList(87672), 100) <= 0) && (BagCount(UpdateShoppingList(74850), UpdateShoppingList(87673), 100) <= 0)) {
                 _shoppingStep = 1;
                 return;
             }
-            Logging.WriteDiagnostic("Step : " + _shoppingStep);
             if (ShopTimer.ElapsedMilliseconds >= 2000) { _buying = false; }
             var shopNPC = ObjectManager.GetObjectsOfType<WoWUnit>().FirstOrDefault(npc => npc.Entry == 64940);
             if (shopNPC == null) return;
@@ -114,69 +140,189 @@ namespace IronpawTokens {
                 if (Me.IsMoving) { WoWMovement.MoveStop(); }
                 if (!MerchantFrame.Instance.IsVisible) { shopNPC.Interact(); }
 
+                #region Fishes
                 if (UpdateShoppingList(74856) >= 20) { // Jade Lungfish
                     var a = BagCount(UpdateShoppingList(74856), UpdateShoppingList(87678), 20);
-                    if (Me.FreeBagSlots >= 2 && !_buying && (a > 0)) {
+                    if (!_buying && (a > 0)) {
                         _buying = true;
                         MerchantBuy("Empty Jade Lungfish Container", a);
                     }
                 }
                 if (UpdateShoppingList(74857) >= 20) { // Giant Mantis Shrimp
                     var a = BagCount(UpdateShoppingList(74857), UpdateShoppingList(87679), 20);
-                    if (Me.FreeBagSlots >= 2 && !_buying && (a > 0)) {
+                    if (!_buying && (a > 0)) {
                         _buying = true;
                         MerchantBuy("Empty Giant Mantis Shrimp Container", a);
                     }
                 }
                 if (UpdateShoppingList(74859) >= 20) { // Emperor Salmon
                     var a = BagCount(UpdateShoppingList(74859), UpdateShoppingList(87680), 20);
-                    if (Me.FreeBagSlots >= 2 && !_buying && (a > 0)) {
+                    if (!_buying && (a > 0)) {
                         _buying = true;
                         MerchantBuy("Empty Emperor Salmon Container", a);
                     }
                 }
                 if (UpdateShoppingList(74860) >= 20) { // Redbelly Mandarin
                     var a = BagCount(UpdateShoppingList(74860), UpdateShoppingList(87681), 20);
-                    if (Me.FreeBagSlots >= 2 && !_buying && (a > 0)) {
+                    if (!_buying && (a > 0)) {
                         _buying = true;
                         MerchantBuy("Empty Redbelly Mandarin Container", a);
                     }
                 }
                 if (UpdateShoppingList(74861) >= 20) { // Tiger Gourami
                     var a = BagCount(UpdateShoppingList(74861), UpdateShoppingList(87682), 20);
-                    if (Me.FreeBagSlots >= 2 && !_buying && (a > 0)) {
+                    if (!_buying && (a > 0)) {
                         _buying = true;
                         MerchantBuy("Empty Tiger Gourami Container", a);
                     }
                 }
                 if (UpdateShoppingList(74863) >= 20) { // Jewel Danio
                     var a = BagCount(UpdateShoppingList(74863), UpdateShoppingList(87683), 20);
-                    if (Me.FreeBagSlots >= 2 && !_buying && (a > 0)) {
+                    if (!_buying && (a > 0)) {
                         _buying = true;
                         MerchantBuy("Empty Jewel Danio Container", a);
                     }
                 }
                 if (UpdateShoppingList(74864) >= 20) { // Reef Octopus
                     var a = BagCount(UpdateShoppingList(74864), UpdateShoppingList(87684), 20);
-                    if (Me.FreeBagSlots >= 2 && !_buying && (a > 0)) {
+                    if (!_buying && (a > 0)) {
                         _buying = true;
                         MerchantBuy("Empty Reef Octopus Container", a);
                     }
                 }
                 if (UpdateShoppingList(74865) >= 20) { // Krasarang Paddlefish
                     var a = BagCount(UpdateShoppingList(74865), UpdateShoppingList(87685), 20);
-                    if (Me.FreeBagSlots >= 2 && !_buying && (a > 0)) {
+                    if (!_buying && (a > 0)) {
                         _buying = true;
                         MerchantBuy("Empty Krasarang Paddlefish Container", a);
                     }
                 }
                 if (UpdateShoppingList(74866) >= 60) { // Golden Carp
                     var a = BagCount(UpdateShoppingList(74866), UpdateShoppingList(87686), 60);
-                    if (Me.FreeBagSlots >= 2 && !_buying && (a > 0)) {
+                    if (!_buying && (a > 0)) {
                         _buying = true;
                         MerchantBuy("Empty Golden Carp Container", a);
                     }
                 }
+                #endregion
+
+                #region Meats
+                if (UpdateShoppingList(74833) >= 20) { // Raw Tiger Steak
+                    var a = BagCount(UpdateShoppingList(74833), UpdateShoppingList(87658), 20);
+                    if (!_buying && (a > 0)) {
+                        _buying = true;
+                        MerchantBuy("Empty Raw Tiger Steak Container", a);
+                    }
+                }
+                if (UpdateShoppingList(74834) >= 20) { // Mushan Ribs
+                    var a = BagCount(UpdateShoppingList(74834), UpdateShoppingList(87659), 20);
+                    if (!_buying && (a > 0)) {
+                        _buying = true;
+                        MerchantBuy("Empty Mushan Ribs Container", a);
+                    }
+                }
+                if (UpdateShoppingList(74837) >= 20) { // Raw Turtle Meat
+                    var a = BagCount(UpdateShoppingList(74837), UpdateShoppingList(87660), 20);
+                    if (!_buying && (a > 0)) {
+                        _buying = true;
+                        MerchantBuy("Empty Raw Turtle Meat Container", a);
+                    }
+                }
+                if (UpdateShoppingList(74838) >= 20) { // Raw Crab Meat
+                    var a = BagCount(UpdateShoppingList(74838), UpdateShoppingList(87661), 20);
+                    if (!_buying && (a > 0)) {
+                        _buying = true;
+                        MerchantBuy("Empty Raw Crab Meat Container", a);
+                    }
+                }
+                if (UpdateShoppingList(74839) >= 20) { // Wildfowl Breast
+                    var a = BagCount(UpdateShoppingList(74839), UpdateShoppingList(87662), 20);
+                    if (!_buying && (a > 0)) {
+                        _buying = true;
+                        MerchantBuy("Empty Wildfowl Breast Container", a);
+                    }
+                }
+                if (UpdateShoppingList(75014) >= 20) { // Raw Crocolisk Belly
+                    var a = BagCount(UpdateShoppingList(75014), UpdateShoppingList(87687), 20);
+                    if (!_buying && (a > 0)) {
+                        _buying = true;
+                        MerchantBuy("Empty Crocolisk Belly Container", a);
+                    }
+                }
+                #endregion
+
+                #region Vegetables
+                if (UpdateShoppingList(74840) >= 100) { // Green Cabbage
+                    var a = BagCount(UpdateShoppingList(74840), UpdateShoppingList(87663), 100);
+                    if (!_buying && (a > 0)) {
+                        _buying = true;
+                        MerchantBuy("Empty Green Cabbage Container", a);
+                    }
+                }
+                if (UpdateShoppingList(74841) >= 100) { // Juicycrunch Carrot
+                    var a = BagCount(UpdateShoppingList(74841), UpdateShoppingList(87664), 100);
+                    if (!_buying && (a > 0)) {
+                        _buying = true;
+                        MerchantBuy("Empty Juicycrunch Carrot Container", a);
+                    }
+                }
+                if (UpdateShoppingList(74842) >= 100) { // Mogu Pumpkin
+                    var a = BagCount(UpdateShoppingList(74842), UpdateShoppingList(87665), 100);
+                    if (!_buying && (a > 0)) {
+                        _buying = true;
+                        MerchantBuy("Empty Mogu Pumpkin Container", a);
+                    }
+                }
+                if (UpdateShoppingList(74843) >= 100) { // Scallions
+                    var a = BagCount(UpdateShoppingList(74843), UpdateShoppingList(87666), 100);
+                    if (!_buying && (a > 0)) {
+                        _buying = true;
+                        MerchantBuy("Empty Scallions Container", a);
+                    }
+                }
+                if (UpdateShoppingList(74844) >= 100) { // Red Blossom Leek
+                    var a = BagCount(UpdateShoppingList(74844), UpdateShoppingList(87667), 100);
+                    if (!_buying && (a > 0)) {
+                        _buying = true;
+                        MerchantBuy("Empty Red Blossom Leek Container", a);
+                    }
+                }
+                if (UpdateShoppingList(74846) >= 100) { // Witchberries
+                    var a = BagCount(UpdateShoppingList(74846), UpdateShoppingList(87669), 100);
+                    if (!_buying && (a > 0)) {
+                        _buying = true;
+                        MerchantBuy("Empty Witchberries Container", a);
+                    }
+                }
+                if (UpdateShoppingList(74847) >= 100) { // Jade Squash
+                    var a = BagCount(UpdateShoppingList(74847), UpdateShoppingList(87670), 100);
+                    if (!_buying && (a > 0)) {
+                        _buying = true;
+                        MerchantBuy("Empty Jade Squash Container", a);
+                    }
+                }
+                if (UpdateShoppingList(74848) >= 100) { // Striped Melon
+                    var a = BagCount(UpdateShoppingList(74848), UpdateShoppingList(87671), 100);
+                    if (!_buying && (a > 0)) {
+                        _buying = true;
+                        MerchantBuy("Empty Striped Melon Container", a);
+                    }
+                }
+                if (UpdateShoppingList(74849) >= 100) { // Pink Turnip
+                    var a = BagCount(UpdateShoppingList(74849), UpdateShoppingList(87672), 100);
+                    if (!_buying && (a > 0)) {
+                        _buying = true;
+                        MerchantBuy("Empty Pink Turnip Container", a);
+                    }
+                }
+                if (UpdateShoppingList(74850) >= 100) { // White Turnip
+                    var a = BagCount(UpdateShoppingList(74850), UpdateShoppingList(87673), 100);
+                    if (!_buying && (a > 0)) {
+                        _buying = true;
+                        MerchantBuy("Empty White Turnip Container", a);
+                    }
+                }
+                #endregion
             }
             else { Navigator.MoveTo(shopNPC.Location); }
         }
@@ -192,14 +338,19 @@ namespace IronpawTokens {
 
         #region CreateGroceries
         private static void CreateGroceries() {
-            Logging.WriteDiagnostic("Step : " + _shoppingStep);
             if (MerchantFrame.Instance.IsVisible) { MerchantFrame.Instance.Close(); }
             if ((UpdateShoppingList(74856) < 20) && (UpdateShoppingList(74857) < 20) && (UpdateShoppingList(74859) < 20) && (UpdateShoppingList(74860) < 20) &&
                 (UpdateShoppingList(74861) < 20) && (UpdateShoppingList(74863) < 20) && (UpdateShoppingList(74864) < 20) && (UpdateShoppingList(74865) < 20) &&
-                (UpdateShoppingList(74866) < 60)) {
+                (UpdateShoppingList(74866) < 60) &&
+                (UpdateShoppingList(74833) < 20) && (UpdateShoppingList(74834) < 20) && (UpdateShoppingList(74837) < 20) && (UpdateShoppingList(74838) < 20) &&
+                (UpdateShoppingList(74839) < 20) && (UpdateShoppingList(75014) < 20) &&
+                (UpdateShoppingList(74840) < 100) && (UpdateShoppingList(74841) < 100) && (UpdateShoppingList(74842) < 100) && (UpdateShoppingList(74843) < 100) &&
+                (UpdateShoppingList(74844) < 100) && (UpdateShoppingList(74846) < 100) && (UpdateShoppingList(74847) < 100) && (UpdateShoppingList(74848) < 100) &&
+                (UpdateShoppingList(74849) < 100) && (UpdateShoppingList(74850) < 100)) {
                 _shoppingStep = 2;
                 return;
-            }
+                }
+            #region Fishes
             if ((HaveItem(87678)) && (!Me.IsCasting) && (UpdateShoppingList(74856) >= 20)) { _itemToUse.Use(); } // Empty Jade Lungfish Container
             if ((HaveItem(87679)) && (!Me.IsCasting) && (UpdateShoppingList(74857) >= 20)) { _itemToUse.Use(); } // Empty Giant Mantis Shrimp Container
             if ((HaveItem(87680)) && (!Me.IsCasting) && (UpdateShoppingList(74859) >= 20)) { _itemToUse.Use(); } // Empty Emperor Salmon Container
@@ -209,6 +360,29 @@ namespace IronpawTokens {
             if ((HaveItem(87684)) && (!Me.IsCasting) && (UpdateShoppingList(74864) >= 20)) { _itemToUse.Use(); } // Empty Reef Octopus Container
             if ((HaveItem(87685)) && (!Me.IsCasting) && (UpdateShoppingList(74865) >= 20)) { _itemToUse.Use(); } // Empty Krasarang Paddlefish Container
             if ((HaveItem(87686)) && (!Me.IsCasting) && (UpdateShoppingList(74866) >= 60)) { _itemToUse.Use(); } // Empty Golden Carp Container
+            #endregion
+
+            #region Meats
+            if ((HaveItem(87658)) && (!Me.IsCasting) && (UpdateShoppingList(74833) >= 20)) { _itemToUse.Use(); } // Empty Raw Tiger Steak Container
+            if ((HaveItem(87659)) && (!Me.IsCasting) && (UpdateShoppingList(74834) >= 20)) { _itemToUse.Use(); } // Empty Mushan Ribs Container
+            if ((HaveItem(87660)) && (!Me.IsCasting) && (UpdateShoppingList(74837) >= 20)) { _itemToUse.Use(); } // Empty Raw Turtle Meat Container
+            if ((HaveItem(87661)) && (!Me.IsCasting) && (UpdateShoppingList(74838) >= 20)) { _itemToUse.Use(); } // Empty Raw Crab Meat Container
+            if ((HaveItem(87662)) && (!Me.IsCasting) && (UpdateShoppingList(74839) >= 20)) { _itemToUse.Use(); } // Empty Wildfowl Breast Container
+            if ((HaveItem(87687)) && (!Me.IsCasting) && (UpdateShoppingList(75014) >= 20)) { _itemToUse.Use(); } // Empty Crocolisk Belly Container
+            #endregion
+
+            #region Vegetables
+            if ((HaveItem(87663)) && (!Me.IsCasting) && (UpdateShoppingList(74840) >= 100)) { _itemToUse.Use(); } // Empty Green Cabbage Container
+            if ((HaveItem(87664)) && (!Me.IsCasting) && (UpdateShoppingList(74841) >= 100)) { _itemToUse.Use(); } // Empty Juicycrunch Carrot Container
+            if ((HaveItem(87665)) && (!Me.IsCasting) && (UpdateShoppingList(74842) >= 100)) { _itemToUse.Use(); } // Empty Mogu Pumpkin Container
+            if ((HaveItem(87666)) && (!Me.IsCasting) && (UpdateShoppingList(74843) >= 100)) { _itemToUse.Use(); } // Empty Scallions Container
+            if ((HaveItem(87667)) && (!Me.IsCasting) && (UpdateShoppingList(74844) >= 100)) { _itemToUse.Use(); } // Empty Red Blossom Leek Container
+            if ((HaveItem(87669)) && (!Me.IsCasting) && (UpdateShoppingList(74846) >= 100)) { _itemToUse.Use(); } // Empty Witchberries Container
+            if ((HaveItem(87670)) && (!Me.IsCasting) && (UpdateShoppingList(74847) >= 100)) { _itemToUse.Use(); } // Empty Jade Squash Container
+            if ((HaveItem(87671)) && (!Me.IsCasting) && (UpdateShoppingList(74848) >= 100)) { _itemToUse.Use(); } // Empty Striped Melon Container
+            if ((HaveItem(87672)) && (!Me.IsCasting) && (UpdateShoppingList(74849) >= 100)) { _itemToUse.Use(); } // Empty Pink Turnip Container
+            if ((HaveItem(87673)) && (!Me.IsCasting) && (UpdateShoppingList(74850) >= 100)) { _itemToUse.Use(); } // Empty White Turnip Container
+            #endregion
         }
         #endregion
 
@@ -299,6 +473,7 @@ namespace IronpawTokens {
 
         #region Bundle of Groceries
         private static readonly uint[] Filter_Misc = {
+            #region Fishes
             87557, // Bundle of Groceries
             87678, // Empty Jade Lungfish Container
             87679, // Empty Giant Mantis Shrimp Container
@@ -309,6 +484,27 @@ namespace IronpawTokens {
             87684, // Empty Reef Octopus Container
             87685, // Empty Krasarang Paddlefish Container
             87686, // Empty Golden Carp Container
+            #endregion
+            #region Meats
+            87658, // Empty Raw Tiger Steak Container
+            87659, // Empty Mushan Ribs Container
+            87660, // Empty Raw Turtle Meat Container
+            87661, // Empty Raw Crab Meat Container
+            87662, // Empty Wildfowl Breast Container
+            87687, // Empty Crocolisk Belly Container
+            #endregion
+            #region Vegetables
+            87663, // Empty Green Cabbage Container
+            87664, // Empty Juicycrunch Carrot Container
+            87665, // Empty Mogu Pumpkin Container
+            87666, // Empty Scallions Container
+            87667, // Empty Red Blossom Leek Container
+            87669, // Empty Witchberries Container
+            87670, // Empty Jade Squash Container
+            87671, // Empty Striped Melon Container
+            87672, // Empty Pink Turnip Container
+            87673, // Empty White Turnip Container
+            #endregion
         };
         #endregion
 
@@ -366,7 +562,6 @@ namespace IronpawTokens {
 
         #region MoveToTurnIn
         private static void MoveToTurnIn() {
-            Logging.WriteDiagnostic("Step : " + _shoppingStep);
             if (!HaveItem(87557)) {
                 _shoppingStep = 0;
                 return;
@@ -395,41 +590,8 @@ namespace IronpawTokens {
 
         #region UpdateShoppingList
         private static int UpdateShoppingList(uint id) {
-            var a = ItemList.Any(u => u == id) ? Lua.GetReturnVal<int>("return GetItemCount(" + id + ")", 0) : 0;
-            Logging.WriteDiagnostic("ItemId : " + id + " " +a.ToString(CultureInfo.InvariantCulture));
             return ItemList.Any(u => u == id) ? Lua.GetReturnVal<int>("return GetItemCount(" + id + ")", 0) : 0;
-
         }
-
-        /*
-                #region Meats
-                if (u == 74833) { _countMeatRts = Me.BagItems.Count(i => i.Entry == u); }
-                if (u == 74834) { _countMeatMr  = Me.BagItems.Count(i => i.Entry == u); }
-                if (u == 74837) { _countMeatRtm = Me.BagItems.Count(i => i.Entry == u); }
-                if (u == 74838) { _countMeatRcm = Me.BagItems.Count(i => i.Entry == u); }
-                if (u == 74839) { _countMeatWb  = Me.BagItems.Count(i => i.Entry == u); }
-                if (u == 75014) { _countMeatRcb = Me.BagItems.Count(i => i.Entry == u); }
-                #endregion
-
-                #region Vegetables
-                if (u == 74840) { _countVegeGc  = Me.BagItems.Count(i => i.Entry == u); }
-                if (u == 74841) { _countVegeJc  = Me.BagItems.Count(i => i.Entry == u); }
-                if (u == 74842) { _countVegeMp  = Me.BagItems.Count(i => i.Entry == u); }
-                if (u == 74843) { _countVegeSc  = Me.BagItems.Count(i => i.Entry == u); }
-                if (u == 74844) { _countVegeRbl = Me.BagItems.Count(i => i.Entry == u); }
-                if (u == 74846) { _countVegeWb  = Me.BagItems.Count(i => i.Entry == u); }
-                if (u == 74847) { _countVegeJs  = Me.BagItems.Count(i => i.Entry == u); }
-                if (u == 74848) { _countVegeSm  = Me.BagItems.Count(i => i.Entry == u); }
-                if (u == 74849) { _countVegePt  = Me.BagItems.Count(i => i.Entry == u); }
-                if (u == 74850) { _countVegeWt  = Me.BagItems.Count(i => i.Entry == u); }
-                #endregion
-
-                #region Bundle of Groceries
-                if (u == 87557) { _countBoG     = Me.BagItems.Count(i => i.Entry == u); }
-                #endregion
-            }
-        }
-        */
         #endregion
     }
 }
