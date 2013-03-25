@@ -31,7 +31,7 @@ namespace IronpawTokens {
         #region Variables
         public override string Name { get { return "IronpawTokens"; } }
         public override string Author { get { return "AknA"; } }
-        public override Version Version { get { return new Version(1, 1, 1); } }
+        public override Version Version { get { return new Version(1, 1, 2); } }
         public static void IpTlog(string message, params object[] args) { Logging.Write(Colors.DeepSkyBlue, "[IronpawTokens]: " + message, args); }
         public static LocalPlayer Me { get { return StyxWoW.Me; } }
         public static uint[] ItemList;
@@ -98,7 +98,7 @@ namespace IronpawTokens {
 
         #region GoShopping
         private static void GoShopping() {
-            if ((BagCount(UpdateShoppingList(74859), UpdateShoppingList(87678), 20) <= 0) && (BagCount(UpdateShoppingList(74857), UpdateShoppingList(87679), 20) <= 0) &&
+            if ((BagCount(UpdateShoppingList(74856), UpdateShoppingList(87678), 20) <= 0) && (BagCount(UpdateShoppingList(74857), UpdateShoppingList(87679), 20) <= 0) &&
                 (BagCount(UpdateShoppingList(74859), UpdateShoppingList(87680), 20) <= 0) && (BagCount(UpdateShoppingList(74860), UpdateShoppingList(87681), 20) <= 0) &&
                 (BagCount(UpdateShoppingList(74861), UpdateShoppingList(87682), 20) <= 0) && (BagCount(UpdateShoppingList(74863), UpdateShoppingList(87683), 20) <= 0) &&
                 (BagCount(UpdateShoppingList(74864), UpdateShoppingList(87684), 20) <= 0) && (BagCount(UpdateShoppingList(74865), UpdateShoppingList(87685), 20) <= 0) &&
@@ -194,13 +194,13 @@ namespace IronpawTokens {
         private static void CreateGroceries() {
             Logging.WriteDiagnostic("Step : " + _shoppingStep);
             if (MerchantFrame.Instance.IsVisible) { MerchantFrame.Instance.Close(); }
-            if ((UpdateShoppingList(74859) < 20) && (UpdateShoppingList(74857) < 20) && (UpdateShoppingList(74859) < 20) && (UpdateShoppingList(74860) < 20) &&
+            if ((UpdateShoppingList(74856) < 20) && (UpdateShoppingList(74857) < 20) && (UpdateShoppingList(74859) < 20) && (UpdateShoppingList(74860) < 20) &&
                 (UpdateShoppingList(74861) < 20) && (UpdateShoppingList(74863) < 20) && (UpdateShoppingList(74864) < 20) && (UpdateShoppingList(74865) < 20) &&
                 (UpdateShoppingList(74866) < 60)) {
                 _shoppingStep = 2;
                 return;
             }
-            if ((HaveItem(87678)) && (!Me.IsCasting) && (UpdateShoppingList(74859) >= 20)) { _itemToUse.Use(); } // Empty Jade Lungfish Container
+            if ((HaveItem(87678)) && (!Me.IsCasting) && (UpdateShoppingList(74856) >= 20)) { _itemToUse.Use(); } // Empty Jade Lungfish Container
             if ((HaveItem(87679)) && (!Me.IsCasting) && (UpdateShoppingList(74857) >= 20)) { _itemToUse.Use(); } // Empty Giant Mantis Shrimp Container
             if ((HaveItem(87680)) && (!Me.IsCasting) && (UpdateShoppingList(74859) >= 20)) { _itemToUse.Use(); } // Empty Emperor Salmon Container
             if ((HaveItem(87681)) && (!Me.IsCasting) && (UpdateShoppingList(74860) >= 20)) { _itemToUse.Use(); } // Empty Redbelly Mandarin Container
