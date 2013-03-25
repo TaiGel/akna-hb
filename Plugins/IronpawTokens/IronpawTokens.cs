@@ -7,6 +7,8 @@
 #endregion
 
 #region Styx Namespace
+
+using System.Globalization;
 using Styx;
 using Styx.Common;
 using Styx.CommonBot.Frames;
@@ -29,7 +31,7 @@ namespace IronpawTokens {
         #region Variables
         public override string Name { get { return "IronpawTokens"; } }
         public override string Author { get { return "AknA"; } }
-        public override Version Version { get { return new Version(1, 1, 0); } }
+        public override Version Version { get { return new Version(1, 1, 1); } }
         public static void IpTlog(string message, params object[] args) { Logging.Write(Colors.DeepSkyBlue, "[IronpawTokens]: " + message, args); }
         public static LocalPlayer Me { get { return StyxWoW.Me; } }
         public static uint[] ItemList;
@@ -104,6 +106,7 @@ namespace IronpawTokens {
                 _shoppingStep = 1;
                 return;
             }
+            Logging.WriteDiagnostic("Step : " + _shoppingStep);
             if (ShopTimer.ElapsedMilliseconds >= 2000) { _buying = false; }
             var shopNPC = ObjectManager.GetObjectsOfType<WoWUnit>().FirstOrDefault(npc => npc.Entry == 64940);
             if (shopNPC == null) return;
@@ -189,6 +192,7 @@ namespace IronpawTokens {
 
         #region CreateGroceries
         private static void CreateGroceries() {
+            Logging.WriteDiagnostic("Step : " + _shoppingStep);
             if (MerchantFrame.Instance.IsVisible) { MerchantFrame.Instance.Close(); }
             if ((UpdateShoppingList(74859) < 20) && (UpdateShoppingList(74857) < 20) && (UpdateShoppingList(74859) < 20) && (UpdateShoppingList(74860) < 20) &&
                 (UpdateShoppingList(74861) < 20) && (UpdateShoppingList(74863) < 20) && (UpdateShoppingList(74864) < 20) && (UpdateShoppingList(74865) < 20) &&
@@ -362,6 +366,7 @@ namespace IronpawTokens {
 
         #region MoveToTurnIn
         private static void MoveToTurnIn() {
+            Logging.WriteDiagnostic("Step : " + _shoppingStep);
             if (!HaveItem(87557)) {
                 _shoppingStep = 0;
                 return;
@@ -390,7 +395,10 @@ namespace IronpawTokens {
 
         #region UpdateShoppingList
         private static int UpdateShoppingList(uint id) {
+            var a = ItemList.Any(u => u == id) ? Lua.GetReturnVal<int>("return GetItemCount(" + id + ")", 0) : 0;
+            Logging.WriteDiagnostic("ItemId : " + id + " " +a.ToString(CultureInfo.InvariantCulture));
             return ItemList.Any(u => u == id) ? Lua.GetReturnVal<int>("return GetItemCount(" + id + ")", 0) : 0;
+
         }
 
         /*
