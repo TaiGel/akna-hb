@@ -28,6 +28,8 @@
 #endregion
 
 #region Styx Namespace
+
+using System.Globalization;
 using Styx;
 using Styx.Common;
 using Styx.CommonBot.Frames;
@@ -83,6 +85,7 @@ namespace IronpawTokens {
         public override void Pulse() {
             if ((!_initialized) || (!ExtensiveCheck())) { return; }
             if (!CheckForLocation()) { return; }
+            Logging.WriteDiagnostic("Step : " + _shoppingStep.ToString(CultureInfo.InvariantCulture));
 
             switch (_shoppingStep) {
                 case 0:
@@ -590,6 +593,8 @@ namespace IronpawTokens {
 
         #region UpdateShoppingList
         private static int UpdateShoppingList(uint id) {
+            var a = ItemList.Any(u => u == id) ? Lua.GetReturnVal<int>("return GetItemCount(" + id + ")", 0) : 0;
+            Logging.WriteDiagnostic("ItemID : " + id + " : " + a.ToString(CultureInfo.InvariantCulture));
             return ItemList.Any(u => u == id) ? Lua.GetReturnVal<int>("return GetItemCount(" + id + ")", 0) : 0;
         }
         #endregion
