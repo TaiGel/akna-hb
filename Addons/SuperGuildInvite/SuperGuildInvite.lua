@@ -922,14 +922,6 @@ function SGI_EVENTS:CHAT_MSG_ADDON(event,...)
 		SendLocks(sender)
 	elseif ID == ID_MASSLOCK then
 		print("|cffffff00 Recieved: "..RecievedLocks(msg).." new locks from |r|cff0033ff"..sender.."|r")
-	elseif ID == ID_VERSION then
-		local new = tonumber(msg)
-		if new and new > tonumber(VERSION_MAJOR) then
-			print("|cffffff00A new version (|r|cff00A2FF"..new.."|r|cffffff00) of |r|cff16ABB5SuperGuildInvite|r|cffffff00 is available at curse.com!")
-			if Alerter then
-				Alerter:SendAlert("|cffffff00A new version (|r|cff00A2FF"..new.."|r|cffffff00) of |r|cff16ABB5SuperGuildInvite|r|cffffff00 is available at curse.com!",10)
-			end
-		end
 	elseif ID == ID_LIVE_SYNC then
 		SGI_QUEUE[msg] = nil
 		SGI_ANTI_SPAM[msg] = nil
