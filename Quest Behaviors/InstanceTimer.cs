@@ -28,6 +28,7 @@ using Action = Styx.TreeSharp.Action;
 
 
 namespace Styx.Bot.Quest_Behaviors {
+    [CustomBehaviorFileName(@"Misc\InstanceTimer")]
     /// <summary>
     /// InstanceTimer by AknA
     /// ##Syntax##
