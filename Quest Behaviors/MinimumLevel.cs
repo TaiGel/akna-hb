@@ -22,6 +22,7 @@ using Action = Styx.TreeSharp.Action;
 
 
 namespace Styx.Bot.Quest_Behaviors {
+    [CustomBehaviorFileName(@"Misc\MinimumLevel")]
     /// <summary>
     /// MinimumLevel by AknA
     /// ##Syntax##
