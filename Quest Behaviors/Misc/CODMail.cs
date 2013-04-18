@@ -361,7 +361,7 @@ namespace Styx.Bot.Quest_Behaviors {
                                     string.Format(
                                     "SendMailNameEditBox:SetText(\"{0}\"); ", Name),
                                     string.Format(
-                                    "SendMailSubjectEditBox:SetText(\"{0}\"); ", Lua.GetReturnVal<string>(string.Format("return GetItemInfo({0})", ItemID), 0))
+                                    "SendMailSubjectEditBox:SetText(\"{0} ({1})\"); ", Lua.GetReturnVal<string>(string.Format("return GetItemInfo({0})", ItemID), 0), Amount)
                                 );
                                 // Attach the items
                                 if (_Stacks > 0) {
