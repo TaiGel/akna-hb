@@ -87,6 +87,9 @@ namespace Styx.Bot.Quest_Behaviors {
         private bool _IsDisposed;
         private bool _DoneStacking;
         private bool _DoneSplitting;
+        private bool _DoneCalculating;
+        private int _Stacks;
+        private int _Rest;
         private Composite _Root;
         private static WoWGameObject _mailbox;
         private readonly Stopwatch _StackerTimer = new Stopwatch();
@@ -165,7 +168,7 @@ namespace Styx.Bot.Quest_Behaviors {
                 "SplitDone = 0; " +
                 "for b=0,4 do " +
                     "for s=1,GetContainerNumSlots(b) do " +
-                        "if GetContainerItemID(b,s) == item then " +
+                        "if ((GetContainerItemID(b,s) == item) and (select(3, GetContainerItemInfo(b,s)) == nil)) then " +
                             "ItemBagNr = b; " +
                             "ItemSlotNr = s; " +
                         "end; " +
@@ -189,18 +192,44 @@ namespace Styx.Bot.Quest_Behaviors {
             );
         }
         
-        private void AttachItem() {
+        private void AttachStacks() {
+            var tempStack = GetMaxStackInfo();
             Lua.DoString(
                 string.Format(
                 "local item = {0} ", ItemID) +
                 string.Format(
-                "local amount = {0} ", Amount) +
-                "attachDone = 0 " +
+                "local amount = {0} ", tempStack) +
+                string.Format(
+                "local stacks = {0} ", _Stacks) +
+                string.Format(
+                "local rest = {0} ", _Rest) +
+                "stacksDone = 0 " +
                 "for b=0,4 do " +
                     "for s=1,GetContainerNumSlots(b) do " +
-                        "if ((GetContainerItemID(b,s) == item) and (select(2, GetContainerItemInfo(b,s)) == amount)) then " +
+                        "if ((GetContainerItemID(b,s) == item) and (select(2, GetContainerItemInfo(b,s)) == amount) and (stacks > 0) and (select(3, GetContainerItemInfo(b,s)) == nil)) then " +
                             "UseContainerItem(b,s) " +
-                            "attachDone = 1 " +
+                            "stacks = stacks - 1 " +
+                        "end " +
+                    "end " +
+                "end " +
+                "if (stacks == 0) then " +
+                    "stacksDone = 1 " +
+                "end"
+            );
+        }
+
+        private void AttachRest() {
+            Lua.DoString(
+                string.Format(
+                "local item = {0} ", ItemID) +
+                string.Format(
+                "local rest = {0} ", _Rest) +
+                "restDone = 0 " +
+                "for b=0,4 do " +
+                    "for s=1,GetContainerNumSlots(b) do " +
+                        "if ((GetContainerItemID(b,s) == item) and (select(2, GetContainerItemInfo(b,s)) == rest) and (select(3, GetContainerItemInfo(b,s)) == nil)) then " +
+                            "UseContainerItem(b,s) " +
+                            "restDone = 1 " +
                         "end " +
                     "end " +
                 "end"
@@ -211,14 +240,37 @@ namespace Styx.Bot.Quest_Behaviors {
             return Lua.GetReturnVal<int>(
                 string.Format(
                 "local item = {0} ", ItemID) +
+                string.Format(
+                "local rest = {0} ", _Rest) +
                 "for b=0,4 do " +
                     "for s=1,GetContainerNumSlots(b) do " +
-                        "if GetContainerItemID(b,s) == item then " +
-                            "return( (select(2, GetContainerItemInfo(b,s))) ) " +
+                        "if ((GetContainerItemID(b,s)) == item and ((select(2, GetContainerItemInfo(b,s))) == rest) then " +
+                            "return 1 " +
                         "end " +
                     "end " +
                 "end ", 0
             );
+        }
+
+        private int GetMaxStackInfo() {
+            return Lua.GetReturnVal<int>(
+                string.Format(
+                "local item = {0} ", ItemID) +
+                "return( (select(8, GetItemInfo(item))) ) ", 0
+            );
+        }
+        #endregion
+
+        #region Math Methods
+        private void CalculateStacks() {
+            var tempAmount = Amount;
+            var a = GetMaxStackInfo();
+            while (tempAmount > a) {
+                tempAmount = tempAmount - a;
+                _Stacks = _Stacks + 1;
+            }
+            if (tempAmount > 0) { _Rest = tempAmount; }
+            _DoneCalculating = true;
         }
         #endregion
 
@@ -260,8 +312,22 @@ namespace Styx.Bot.Quest_Behaviors {
                             }
                         })
                     ),
+                    new Decorator(context => (!_DoneCalculating),
+                        new Action(context => {
+                            if (Lua.GetReturnVal<int>(string.Format("return GetItemCount({0})", ItemID), 0) < Amount) {
+                                CODLog(string.Format("You don't have {0} of {1}.",
+                                    Amount, Lua.GetReturnVal<string>(string.Format("return GetItemInfo({0})", ItemID), 0)));
+                                _mailSent = true;
+                            }
+                            CalculateStacks();
+                            if (_Stacks > 12 || (_Stacks == 12 && _Rest > 0)) {
+                                CODLog("You can only attach 12 items in one mail.");
+                                _mailSent = true;
+                            }
+                        })
+                    ),
                     // Split Items if needed...
-                    new Decorator(context => ((GetStackInfo() != Amount) && !_DoneSplitting),
+                    new Decorator(context => ((GetStackInfo() != 1) && !_DoneSplitting),
                         new Action(context => {
                             CODLog("Spliting item, please wait.");
                             SplitItemStack();
@@ -285,8 +351,17 @@ namespace Styx.Bot.Quest_Behaviors {
                                     string.Format(
                                     "SendMailSubjectEditBox:SetText(\"{0}\"); ", Lua.GetReturnVal<string>(string.Format("return GetItemInfo({0})", ItemID), 0))
                                 );
-                                // Attach the item
-                                AttachItem();
+                                // Attach the items
+                                while (Lua.GetReturnVal<int>("return stacksDone", 0) != 1) {
+                                    if (_Stacks > 0) {
+                                        AttachStacks();
+                                    }
+                                }
+                                while (Lua.GetReturnVal<int>("return restDone", 0) != 1) {
+                                    if (_Rest > 0) {
+                                        AttachRest();
+                                    }
+                                }
                                 // Set COD if we should
                                 if ((CodGold > 0) || (CodSilver > 0) || (CodCopper > 0)) {
                                     Lua.DoString(
@@ -310,7 +385,7 @@ namespace Styx.Bot.Quest_Behaviors {
                                 }
                                 // If we can't attach the item to the mail then abort...
                                 else {
-                                    CODLog(string.Format("You don't have {0} of {1}, or you have selected a too big stack amount.", 
+                                    CODLog(string.Format("You don't have {0} of {1}.", 
                                         Amount, Lua.GetReturnVal<string>(string.Format("return GetItemInfo({0})", ItemID), 0)));
                                     MailFrame.Instance.Close();
                                     _mailSent = true;
