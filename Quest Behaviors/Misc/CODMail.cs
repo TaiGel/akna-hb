@@ -12,8 +12,8 @@
 // <CustomBehavior File="Misc\CODMail" Name="AknA" ItemID="72988" Amount="20" CodGold="1" CodSilver="2" CodCopper="3" />
 // This would send 1 Windwool Cloth (not 1 stack but 1 cloth) without COD to AknA
 // <CustomBehavior File="Misc\CODMail" Name="AknA" ItemID="72988" />
-//
-// This behavior will only attach ONE item / mail, so NEVER set the Amount bigger than the biggest stacksize.
+// This would send 2 full stacks and one stack of 7 of Windwool Cloth without COD to AknA
+// <CustomBehavior File="Misc\CODMail" Name="AknA" ItemID="72988" Amount="47" />
 //
 // Name = Name of the one you want to send the mail to (REQUIRED)
 // ItemID = The itemID of the item you want to send (REQUIRED)
@@ -158,7 +158,7 @@ namespace Styx.Bot.Quest_Behaviors {
         private void SplitItemStack() {
             Lua.DoString(
                 string.Format(
-                "local amount = {0}; ", Amount) +
+                "local amount = {0}; ", _Rest) +
                 string.Format(
                 "local item = {0}; ", ItemID) +
                 "local ItemBagNr = 0; " +
@@ -259,17 +259,27 @@ namespace Styx.Bot.Quest_Behaviors {
                 "return( (select(8, GetItemInfo(item))) ) ", 0
             );
         }
+
+        private void ResetLuaVariables() {
+            Lua.DoString(
+                "stacksDone = 0 " +
+                "restDone = 0 " +
+                "SplitDone = 0 "
+            );
+        }
         #endregion
 
-        #region Math Methods
+        #region Math Method
         private void CalculateStacks() {
+            _Rest = 0;
+            _Stacks = 0;
             var tempAmount = Amount;
             var a = GetMaxStackInfo();
-            while (tempAmount > a) {
+            while (tempAmount >= a) {
                 tempAmount = tempAmount - a;
                 _Stacks = _Stacks + 1;
             }
-            if (tempAmount > 0) { _Rest = tempAmount; }
+            _Rest = tempAmount > 0 ? tempAmount : 0;
             _DoneCalculating = true;
         }
         #endregion
@@ -301,13 +311,15 @@ namespace Styx.Bot.Quest_Behaviors {
                     // Stack Items if needed...
                     new Decorator(context => (!_DoneStacking),
                         new Action(context => {
+                            ResetLuaVariables();
                             if (!_StackerTimer.IsRunning) {
                                 _StackerTimer.Start();
                                 CODLog("Stacking items, please wait.");
                                 Lua.DoString(StackLua);
                             }
-                            if (_StackerTimer.ElapsedMilliseconds > 500) {
-                                _StackerTimer.Reset();
+                            if (_StackerTimer.IsRunning && _StackerTimer.ElapsedMilliseconds > 500) {
+                                _StackerTimer.Restart();
+                                Lua.DoString(StackLua);
                                 _DoneStacking = Lua.GetReturnVal<int>(StackLua, 0) == 1;
                             }
                         })
@@ -327,7 +339,7 @@ namespace Styx.Bot.Quest_Behaviors {
                         })
                     ),
                     // Split Items if needed...
-                    new Decorator(context => ((GetStackInfo() != 1) && !_DoneSplitting),
+                    new Decorator(context => ((GetStackInfo() != 1) && !_DoneSplitting && _Rest > 0),
                         new Action(context => {
                             CODLog("Spliting item, please wait.");
                             SplitItemStack();
@@ -352,13 +364,13 @@ namespace Styx.Bot.Quest_Behaviors {
                                     "SendMailSubjectEditBox:SetText(\"{0}\"); ", Lua.GetReturnVal<string>(string.Format("return GetItemInfo({0})", ItemID), 0))
                                 );
                                 // Attach the items
-                                while (Lua.GetReturnVal<int>("return stacksDone", 0) != 1) {
-                                    if (_Stacks > 0) {
+                                if (_Stacks > 0) {
+                                    if (Lua.GetReturnVal<int>("return stacksDone", 0) != 1) {
                                         AttachStacks();
                                     }
                                 }
-                                while (Lua.GetReturnVal<int>("return restDone", 0) != 1) {
-                                    if (_Rest > 0) {
+                                if (_Rest > 0) {
+                                    if (Lua.GetReturnVal<int>("return restDone", 0) != 1) {
                                         AttachRest();
                                     }
                                 }
@@ -378,15 +390,9 @@ namespace Styx.Bot.Quest_Behaviors {
                             new WaitContinue(TimeSpan.FromMilliseconds(300), context => false, new ActionAlwaysSucceed()),
                             new Action(context => {
                                 // Send the mail...
-                                if (Lua.GetReturnVal<int>("return attachDone", 0) == 1) {
+                                if ((_Stacks == 0 || (_Stacks > 0 && Lua.GetReturnVal<int>("return stacksDone", 0) == 1)) &&
+                                    (_Rest == 0 || (_Rest > 0 && Lua.GetReturnVal<int>("return restDone", 0) == 1))) {
                                     Lua.DoString("SendMailMailButton:Click();");
-                                    MailFrame.Instance.Close();
-                                    _mailSent = true;
-                                }
-                                // If we can't attach the item to the mail then abort...
-                                else {
-                                    CODLog(string.Format("You don't have {0} of {1}.", 
-                                        Amount, Lua.GetReturnVal<string>(string.Format("return GetItemInfo({0})", ItemID), 0)));
                                     MailFrame.Instance.Close();
                                     _mailSent = true;
                                 }
