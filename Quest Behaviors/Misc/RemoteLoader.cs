@@ -14,6 +14,8 @@
 // CheckRange  : (OPTIONAL, default = 0) If set to 1 QB will pause the profile until every party member is within your interact range.
 // ProfileName : (OPTIONAL) Name of the profile to load (If RemotePath isn't included then the profile to load must be in the same directory as previous profile).
 // RemotePath  : (OPTIONAL) URL to where you have your remote profile stored.
+//
+// Special thanks to Natfoth for helping me understand and improving my Behavior Tree programming.
 #endregion
 
 #region using
@@ -136,91 +138,86 @@ namespace Styx.Bot.Quest_Behaviors {
         protected override Composite CreateBehavior() {
             return _Root ?? (_Root =
                 new PrioritySelector(context => !_isBehaviorDone,
-
                     // Check for partymember level.
                     new Decorator(context => _checkForLevel,
-                        new Action(context => {
-                            if (!CheckLevel()) {
-                                Logging.Write(Colors.Red, string.Format("[RemoteLoader]: Everyone in your party is not above level {0}.", MinLevel));
-                                _isBehaviorDone = true;
-                            }
-                            _checkForLevel = false;
-                        })
+                        new Sequence(
+                            new DecoratorContinue(context => !CheckLevel(),
+                                new Sequence(
+                                    new Action(context => Logging.Write(Colors.Red, string.Format("[RemoteLoader]: Everyone in your party is not above level {0}.", MinLevel))),
+                                    new Action(context => _isBehaviorDone = true)
+                                )
+                            ),
+                            new Action(context => _checkForLevel = false)
+                        )
                     ),
 
                     // If remote file does not exist, notify of problem...
                     new Decorator(context => _checkForRemoteProfile,
-                        new Action(context => {
-                            if (ProfileName == "") {
-                                Logging.Write(Colors.Red, "[RemoteLoader]: You need to include a ProfileName.");
-                                _isBehaviorDone = true;
-                            }
-                            if (!File.Exists(NewRemoteProfilePath)) {
-                                Logging.Write(Colors.Red, "[RemoteLoader]: Profile '{0}' does not exist.");
-                                _isBehaviorDone = true;
-                            }
-                            _checkForRemoteProfile = false;
-                        })
+                        new Sequence(
+                            new DecoratorContinue(context => ProfileName == "",
+                                new Sequence(
+                                    new Action(context => Logging.Write(Colors.Red, "[RemoteLoader]: You need to include a ProfileName.")),
+                                    new Action(context => _isBehaviorDone = true)
+                                )
+                            ),
+                            new DecoratorContinue(context => !File.Exists(NewRemoteProfilePath),
+                                new Sequence(
+                                    new Action(context => Logging.Write(Colors.Red, "[RemoteLoader]: Profile '{0}' does not exist.")),
+                                    new Action(context => _isBehaviorDone = true)
+                                )
+                            ),
+                            new Action(context => _checkForRemoteProfile = false)
+                        )
                     ),
 
                     // If local file does not exist, notify of problem...
                     new Decorator(context => _checkForProfile,
-                        new Action(context => {
-                            if (RemotePath == "") {
-                                if (!File.Exists(NewLocalProfilePath)) {
-                                    Logging.Write(Colors.Red, "[RemoteLoader]: Profile '{0}' does not exist.");
-                                    _isBehaviorDone = true;
-                                }
-                            }
-                            _checkForProfile = false;
-                        })
+                        new Sequence(
+                            new DecoratorContinue(context => (RemotePath == "" && !File.Exists(NewLocalProfilePath)),
+                                new Sequence(
+                                    new Action(context => Logging.Write(Colors.Red, "[RemoteLoader]: Profile '{0}' does not exist.")),
+                                    new Action(context => _isBehaviorDone = true)
+                                )
+                            ),
+                            new Action(context => _checkForProfile = false)
+                        )
                     ),
 
                     // Should we wait for party members to be in range ?
                     new Decorator(context => _checkForRange,
-                        new Action(context => {
-                            if (CheckPartyRange()) {
-                                Logging.Write(Colors.DeepSkyBlue, "[RemoteLoader]: Everyone is within range.");
-                                _checkForRange = false;
-                            }
-                        })
+                        new DecoratorContinue(context => CheckPartyRange(),
+                            new Sequence(
+                                new Action(context => Logging.Write(Colors.DeepSkyBlue, "[RemoteLoader]: Everyone is within range.")),
+                                new Action(context => _checkForRange = false)
+                            )
+                        )
                     ),
 
                     // Load the remote profile...
                     new Decorator(context => RemotePath != "",
                         new Sequence(
-                            new Action(context => {
-                                TreeRoot.StatusText = "Loading profile '" + ProfileName + "'";
-                                Logging.Write(Colors.DeepSkyBlue, "[RemoteLoader]: Loading profile '{0}'", ProfileName);
-                                ProfileManager.LoadNew(new MemoryStream(new WebClient().DownloadData(NewRemoteProfilePath)));
-                            }),
+                            new Action(context => TreeRoot.StatusText = "Loading profile '" + ProfileName + "'"),
+                            new Action(context => Logging.Write(Colors.DeepSkyBlue, "[RemoteLoader]: Loading profile '{0}'", ProfileName)),
+                            new Action(context => ProfileManager.LoadNew(new MemoryStream(new WebClient().DownloadData(NewRemoteProfilePath)))),
                             new WaitContinue(TimeSpan.FromMilliseconds(300), context => false, new ActionAlwaysSucceed()),
-                            new Action(context => {
-                                _isBehaviorDone = true;
-                            })
+                            new Action(context => _isBehaviorDone = true)
                         )
                     ),
 
                     // Load the local profile...
                     new Decorator(context => ProfileName != "",
                         new Sequence(
-                            new Action(context => {
-                                TreeRoot.StatusText = "Loading profile '" + ProfileName + "'";
-                                Logging.Write(Colors.DeepSkyBlue, "[RemoteLoader]: Loading profile '{0}'", ProfileName);
-                                ProfileManager.LoadNew(NewLocalProfilePath, false);
-                            }),
+                            new Action(context => TreeRoot.StatusText = "Loading profile '" + ProfileName + "'"),
+                            new Action(context => Logging.Write(Colors.DeepSkyBlue, "[RemoteLoader]: Loading profile '{0}'", ProfileName)),
+                            new Action(context => ProfileManager.LoadNew(NewLocalProfilePath, false)),
                             new WaitContinue(TimeSpan.FromMilliseconds(300), context => false, new ActionAlwaysSucceed()),
-                            new Action(context => {
-                                _isBehaviorDone = true;
-                            })
+                            new Action(context => _isBehaviorDone = true)
                         )
                     ),
 
                     // Behavior is done...
                     new Decorator(context => !_isBehaviorDone,
-                        new Action(context => {
-                            _isBehaviorDone = true;
-                        })
+                        new Action(context => _isBehaviorDone = true)
                     )
                 )
             );
