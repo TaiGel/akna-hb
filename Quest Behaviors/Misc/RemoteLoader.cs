@@ -64,11 +64,6 @@ namespace Styx.Bot.Quest_Behaviors {
         public string RemotePath { get; private set; }
 
         // Private variables for internal state
-        private static bool _runOnce;
-        private static bool _checkForRange;
-        private static bool _checkForLevel;
-        private static bool _checkForProfile;
-        private static bool _checkForRemoteProfile;
         private static bool _isBehaviorDone;
         private bool _IsDisposed;
         private Composite _Root;
@@ -96,11 +91,6 @@ namespace Styx.Bot.Quest_Behaviors {
                 // Clean up unmanaged resources (if any) here...
                 BotEvents.OnBotStop -= BotEvents_OnBotStop;
                 _isBehaviorDone = false;
-                _checkForLevel = false;
-                _checkForRange = false;
-                _checkForProfile = false;
-                _checkForRemoteProfile = false;
-
 
                 // Call parent Dispose() (if it exists) here ...
                 base.Dispose();
@@ -132,66 +122,56 @@ namespace Styx.Bot.Quest_Behaviors {
             }
             return true;
         }
+
+        static private bool UrlExists(string url) {
+            var a = true;
+            var fileExists = WebRequest.Create(new Uri(url));
+            fileExists.Method = "HEAD";
+            fileExists.Timeout = 30000;
+            try {
+                using (fileExists.GetResponse()) { }
+            }
+            catch (WebException request) {
+                Logging.WriteDiagnostic(Colors.Red, request.Message);
+                a = false;
+            }
+            return a;
+        }
         #endregion
 
         #region Overrides of CustomForcedBehavior
         protected override Composite CreateBehavior() {
             return _Root ?? (_Root =
                 new PrioritySelector(context => !_isBehaviorDone,
-                    // Check for partymember level.
-                    new Decorator(context => _checkForLevel,
+                    // Should we check for partymember minumum level ?
+                    new Decorator(context => (MinLevel > 0),
                         new Sequence(
+                            // Someone is below MinLevel.
                             new DecoratorContinue(context => !CheckLevel(),
                                 new Sequence(
-                                    new Action(context => Logging.Write(Colors.Red, string.Format("[RemoteLoader]: Everyone in your party is not above level {0}.", MinLevel))),
+                                    new Action(context => Logging.Write(Colors.DeepSkyBlue, string.Format("[RemoteLoader]: Someone in your party is below level {0}.", MinLevel))),
                                     new Action(context => _isBehaviorDone = true)
                                 )
                             ),
-                            new Action(context => Logging.Write(Colors.Red, string.Format("[RemoteLoader]: Everyone in your party is above level {0}. Continuing.", MinLevel))),
-                            new Action(context => _checkForLevel = false)
-                        )
-                    ),
-
-                    // If remote file does not exist, notify of problem...
-                    new Decorator(context => _checkForRemoteProfile,
-                        new Sequence(
-                            new DecoratorContinue(context => ProfileName == "",
-                                new Sequence(
-                                    new Action(context => Logging.Write(Colors.Red, "[RemoteLoader]: You need to include a ProfileName.")),
-                                    new Action(context => _isBehaviorDone = true)
-                                )
-                            ),
-                            new DecoratorContinue(context => !File.Exists(NewRemoteProfilePath),
-                                new Sequence(
-                                    new Action(context => Logging.Write(Colors.Red, "[RemoteLoader]: Profile '{0}' does not exist.", ProfileName)),
-                                    new Action(context => _isBehaviorDone = true)
-                                )
-                            ),
-                            new Action(context => _checkForRemoteProfile = false)
-                        )
-                    ),
-
-                    // If local file does not exist, notify of problem...
-                    new Decorator(context => _checkForProfile,
-                        new Sequence(
-                            new DecoratorContinue(context => (RemotePath == "" && !File.Exists(NewLocalProfilePath)),
-                                new Sequence(
-                                    new Action(context => Logging.Write(Colors.Red, "[RemoteLoader]: Profile '{0}' does not exist.", ProfileName)),
-                                    new Action(context => _isBehaviorDone = true)
-                                )
-                            ),
-                            new Action(context => _checkForProfile = false)
+                            // Everyone is equal or above MinLevel.
+                            new DecoratorContinue(context => CheckLevel(),
+                                new Action(context => MinLevel = 0)
+                            )
                         )
                     ),
 
                     // Should we wait for party members to be in range ?
-                    new Decorator(context => _checkForRange,
+                    new Decorator(context => (CheckRange != 0),
                         new Sequence(
-                            new WaitContinue(TimeSpan.FromMilliseconds(300), context => false, new ActionAlwaysSucceed()),
+                            // Everyone isn't within interact range, lets wait abit before checking again.
+                            new DecoratorContinue(context => !CheckPartyRange(),
+                                new WaitContinue(TimeSpan.FromMilliseconds(300), context => false, new ActionAlwaysSucceed())
+                            ),
+                            // Everyone is within interact range.
                             new DecoratorContinue(context => CheckPartyRange(),
                                 new Sequence(
                                     new Action(context => Logging.Write(Colors.DeepSkyBlue, "[RemoteLoader]: Everyone is within range.")),
-                                    new Action(context => _checkForRange = false)
+                                    new Action(context => CheckRange = 0)
                                 )
                             )
                         )
@@ -200,26 +180,57 @@ namespace Styx.Bot.Quest_Behaviors {
                     // Load the remote profile...
                     new Decorator(context => RemotePath != "",
                         new Sequence(
-                            new Action(context => TreeRoot.StatusText = "Loading profile '" + ProfileName + "'"),
-                            new Action(context => Logging.Write(Colors.DeepSkyBlue, "[RemoteLoader]: Loading profile '{0}'", ProfileName)),
-                            new Action(context => ProfileManager.LoadNew(new MemoryStream(new WebClient().DownloadData(NewRemoteProfilePath)))),
-                            new WaitContinue(TimeSpan.FromMilliseconds(300), context => false, new ActionAlwaysSucceed()),
-                            new Action(context => _isBehaviorDone = true)
+                            // You have included a RemotePath but not a ProfileName.
+                            new DecoratorContinue(context => ProfileName == "",
+                                new Sequence(
+                                    new Action(context => Logging.Write(Colors.Red, "[RemoteLoader]: You need to include a ProfileName.")),
+                                    new Action(context => _isBehaviorDone = true)
+                                )
+                            ),
+                            // Remote Profile doesn't exist.
+                            new DecoratorContinue(context => (ProfileName != "" && !UrlExists(NewRemoteProfilePath)),
+                                new Sequence(
+                                    new Action(context => Logging.Write(Colors.Red, "[RemoteLoader]: Profile '{0}' does not exist.", ProfileName)),
+                                    new Action(context => _isBehaviorDone = true)
+                                )
+                            ),
+                            // Everything is ok, Load the remote Profile
+                            new DecoratorContinue(context => (ProfileName != "" && UrlExists(NewRemoteProfilePath)),
+                                new Sequence(
+                                    new Action(context => TreeRoot.StatusText = "Loading profile '" + ProfileName + "'"),
+                                    new Action(context => Logging.Write(Colors.DeepSkyBlue, "[RemoteLoader]: Loading profile '{0}'", ProfileName)),
+                                    new Action(context => ProfileManager.LoadNew(new MemoryStream(new WebClient().DownloadData(NewRemoteProfilePath)))),
+                                    new WaitContinue(TimeSpan.FromMilliseconds(300), context => false, new ActionAlwaysSucceed()),
+                                    new Action(context => _isBehaviorDone = true)
+                                )
+                            )
                         )
                     ),
 
                     // Load the local profile...
-                    new Decorator(context => ProfileName != "",
+                    new Decorator(context => (ProfileName != "" && RemotePath == ""),
                         new Sequence(
-                            new Action(context => TreeRoot.StatusText = "Loading profile '" + ProfileName + "'"),
-                            new Action(context => Logging.Write(Colors.DeepSkyBlue, "[RemoteLoader]: Loading profile '{0}'", ProfileName)),
-                            new Action(context => ProfileManager.LoadNew(NewLocalProfilePath, false)),
-                            new WaitContinue(TimeSpan.FromMilliseconds(300), context => false, new ActionAlwaysSucceed()),
-                            new Action(context => _isBehaviorDone = true)
+                            // Local Profile doesn't exist.
+                            new DecoratorContinue(context => !File.Exists(NewLocalProfilePath),
+                                new Sequence(
+                                    new Action(context => Logging.Write(Colors.Red, "[RemoteLoader]: Profile '{0}' does not exist.", ProfileName)),
+                                    new Action(context => _isBehaviorDone = true)
+                                )
+                            ),
+                            // Everything is ok, Load the local Profile.
+                            new DecoratorContinue(context => File.Exists(NewLocalProfilePath),
+                                new Sequence(
+                                    new Action(context => TreeRoot.StatusText = "Loading profile '" + ProfileName + "'"),
+                                    new Action(context => Logging.Write(Colors.DeepSkyBlue, "[RemoteLoader]: Loading profile '{0}'", ProfileName)),
+                                    new Action(context => ProfileManager.LoadNew(NewLocalProfilePath, false)),
+                                    new WaitContinue(TimeSpan.FromMilliseconds(300), context => false, new ActionAlwaysSucceed()),
+                                    new Action(context => _isBehaviorDone = true)
+                                )
+                            )
                         )
                     ),
 
-                    // Behavior is done...
+                    // Everyone is within interact range and we shouldn't load a profile, then end the Quest Behavior.
                     new Decorator(context => !_isBehaviorDone,
                         new Action(context => _isBehaviorDone = true)
                     )
@@ -241,14 +252,7 @@ namespace Styx.Bot.Quest_Behaviors {
             OnStart_HandleAttributeProblem();
 
             if (!IsDone) {
-                if (!_runOnce) {
-                    BotEvents.OnBotStop += BotEvents_OnBotStop;
-                    if (MinLevel > 0) { _checkForLevel = true; }
-                    if (CheckRange != 0) { _checkForRange = true; }
-                    if (ProfileName != "") { _checkForProfile = true; }
-                    if (RemotePath != "") { _checkForRemoteProfile = true; }
-                    _runOnce = true;
-                }
+                BotEvents.OnBotStop += BotEvents_OnBotStop;
             }
         }
         #endregion
