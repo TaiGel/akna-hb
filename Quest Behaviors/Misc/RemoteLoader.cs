@@ -147,6 +147,7 @@ namespace Styx.Bot.Quest_Behaviors {
                                     new Action(context => _isBehaviorDone = true)
                                 )
                             ),
+                            new Action(context => Logging.Write(Colors.Red, string.Format("[RemoteLoader]: Everyone in your party is above level {0}. Continuing.", MinLevel))),
                             new Action(context => _checkForLevel = false)
                         )
                     ),
@@ -162,7 +163,7 @@ namespace Styx.Bot.Quest_Behaviors {
                             ),
                             new DecoratorContinue(context => !File.Exists(NewRemoteProfilePath),
                                 new Sequence(
-                                    new Action(context => Logging.Write(Colors.Red, "[RemoteLoader]: Profile '{0}' does not exist.")),
+                                    new Action(context => Logging.Write(Colors.Red, "[RemoteLoader]: Profile '{0}' does not exist.", ProfileName)),
                                     new Action(context => _isBehaviorDone = true)
                                 )
                             ),
@@ -175,7 +176,7 @@ namespace Styx.Bot.Quest_Behaviors {
                         new Sequence(
                             new DecoratorContinue(context => (RemotePath == "" && !File.Exists(NewLocalProfilePath)),
                                 new Sequence(
-                                    new Action(context => Logging.Write(Colors.Red, "[RemoteLoader]: Profile '{0}' does not exist.")),
+                                    new Action(context => Logging.Write(Colors.Red, "[RemoteLoader]: Profile '{0}' does not exist.", ProfileName)),
                                     new Action(context => _isBehaviorDone = true)
                                 )
                             ),
@@ -185,10 +186,13 @@ namespace Styx.Bot.Quest_Behaviors {
 
                     // Should we wait for party members to be in range ?
                     new Decorator(context => _checkForRange,
-                        new DecoratorContinue(context => CheckPartyRange(),
-                            new Sequence(
-                                new Action(context => Logging.Write(Colors.DeepSkyBlue, "[RemoteLoader]: Everyone is within range.")),
-                                new Action(context => _checkForRange = false)
+                        new Sequence(
+                            new WaitContinue(TimeSpan.FromMilliseconds(300), context => false, new ActionAlwaysSucceed()),
+                            new DecoratorContinue(context => CheckPartyRange(),
+                                new Sequence(
+                                    new Action(context => Logging.Write(Colors.DeepSkyBlue, "[RemoteLoader]: Everyone is within range.")),
+                                    new Action(context => _checkForRange = false)
+                                )
                             )
                         )
                     ),
