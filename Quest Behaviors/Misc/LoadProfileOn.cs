@@ -5,16 +5,17 @@
 // Examples :
 // This would make the profile pause until all party members are within interact range (and then continue the profile).
 // <CustomBehavior File="Misc\LoadProfileOn" CheckRange="1" />
-// This would make the profile pause until all party members are within interact range IF all party members are above level 10 (if not all is above level 10 it doesn't pause)
+// This would make the profile pause until all party members are within interact range IF all party members are above level 10 (if not all is above level 10 QB won't check range.)
 // <CustomBehavior File="Misc\LoadProfileOn" CheckRange="1" MinLevel="10" />
-// This would load a localy stored profile named test.xml (it needs to be in the same directory as the last loaded profile)
-// <CustomBehavior File="Misc\LoadProfileOn" ProfileName="test.xml" />
-// This would load a remote profile from the url mysite.com (http://mysite.com/test.xml)
-// <CustomBehavior File="Misc\LoadProfileOn" ProfileName="test.xml" RemotePath="http://mysite.com/" />
+// This would load a localy stored profile (it needs to be in the same directory as the last localy loaded profile)
+// <CustomBehavior File="Misc\LoadProfileOn" ProfileName="[Rep] Nat Pagle.xml" />
+// This would load a remote profile from my SVN.
+// <CustomBehavior File="Misc\LoadProfileOn" ProfileName="[Rep] Nat Pagle.xml" RemotePath="http://akna-hb.googlecode.com/svn/trunk/Profiles/[Rep] Nat Pagle/" />
 // And to combine everything.
 // This would load a remote profile if everyone in your party is above level 50 and within interact range.
-// <CustomBehavior File="Misc\LoadProfileOn" MinLevel="50" CheckRange="1" ProfileName="test.xml" RemotePath="http://mysite.com/" />
-// NOTE : In the last example, if everyone in the party is above level 50, the profile will pause until everyone is within interact range and then load the remote profile.
+// <CustomBehavior File="Misc\LoadProfileOn" MinLevel="50" CheckRange="1" ProfileName="[Rep] Nat Pagle.xml" RemotePath="http://akna-hb.googlecode.com/svn/trunk/Profiles/[Rep] Nat Pagle/" />
+// NOTE : In the last example, if everyone in the party is >= 50, the profile will pause until everyone is within interact range and then load the remote profile.
+// NOTE : However if someone in your party is below level 50, it won't load the profile and it won't check range.
 //
 // MinLevel    : (OPTIONAL) If not everyone in your party (including yourself) is above level then QB will exit doing nothing.
 // CheckRange  : (OPTIONAL, default = 0) If set to 1 QB will pause the profile until every party member is within your interact range.
@@ -115,14 +116,13 @@ namespace Styx.Bot.Quest_Behaviors {
 
         #region Methods
         private bool CheckLevel() {
-            return Me.Level >= MinLevel && Me.GroupInfo.RaidMembers.All(groupMember => groupMember.ToPlayer() == null || groupMember.ToPlayer().Level >= MinLevel);
+            return Me.Level >= MinLevel && Me.GroupInfo.RaidMembers.All(a => a.ToPlayer() == null || (!a.ToPlayer().IsPet && (a.ToPlayer().Level >= MinLevel)));
         }
 
         private bool CheckPartyRange() {
-            foreach (var groupMember in StyxWoW.Me.GroupInfo.RaidMembers) {
-                var p = groupMember.ToPlayer();
+            foreach (var p in StyxWoW.Me.GroupInfo.RaidMembers.Select(a => a.ToPlayer())) {
                 if (p == null) { 
-                    Logging.Write(Colors.LightBlue, "Can't scan party member, assuming he's too far away");
+                    Logging.Write(Colors.LightBlue, "Can't scan party member, assuming member is too far away");
                     return false;
                 }
                 if (p.Name != Me.Name && WoWMovement.CalculatePointFrom(p.Location, 3).Distance(Me.Location) > p.InteractRange) {
