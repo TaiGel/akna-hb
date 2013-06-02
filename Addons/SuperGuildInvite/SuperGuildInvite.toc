@@ -1,4 +1,4 @@
-## Interface: 50200
+## Interface: 50300
 ## Author: Janniie - Modified by AknA
 ## Title: |cffffff00<|r|cff16ABB5SGI|r|cffffff00>|r |cff16ABB5SuperGuildInvite|r
 ## Notes: Version 9.0
