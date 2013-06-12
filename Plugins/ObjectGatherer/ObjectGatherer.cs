@@ -108,25 +108,46 @@
  * Ver 1.57
  * Updated the GUI, move the buttons around abit and catogarized it.
  * Allso added new things to the GUI (not working yet) but for future updates.
+ * 
+ * Ver 2.00
+ * Completly recoded plugin to use Behavior Tree.
+ * Added Local Blacklist (thanks Chinajade for the code).
+ * 
+ * Ver 2.01
+ * Fixed the bugs I created when I made some methods private when they should have been public.
+ * I made a few methods none static when they should have been static.
+ * Hopefully it should be fixed now.
+ * 
+ * Ver 2.02
+ * Fixed so that we don't have a null reference when we search for objects.
+ * 
+ * Ver 2.03
+ * Fixed some issues with BT, it will now correctly hook into Loot_Main
+ * 
+ * Ver 2.04
+ * Added Kor'kron items under quests as requested.
  */
 #endregion
 
-#region Styx Namespace
+#region Using
 using Styx;
 using Styx.Common;
+using Styx.Common.Helpers;
 using Styx.CommonBot;
 using Styx.Pathing;
 using Styx.Plugins;
+using Styx.TreeSharp;
 using Styx.WoWInternals;
 using Styx.WoWInternals.WoWObjects;
-#endregion Styx Namespace
 
-#region System Namespace
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows.Media;
+
+using CommonBehaviors.Actions;
+using Action = Styx.TreeSharp.Action;
 #endregion System Namespace
 
 namespace ObjectGatherer {
@@ -134,42 +155,50 @@ namespace ObjectGatherer {
         #region Variables
         public override string Name { get { return "ObjectGatherer"; } }
         public override string Author { get { return "AknA"; } }
-        public override Version Version { get { return new Version(1, 5, 7); } }
+        public override Version Version { get { return new Version(2, 0, 4); } }
         public static void OGlog(string message, params object[] args) { Logging.Write(Colors.DeepSkyBlue, "[ObjectGatherer]: " + message, args); }
-        public static LocalPlayer Me { get { return StyxWoW.Me; } }
-        public static WoWPoint LocationId = WoWPoint.Empty;
-        public static WoWGameObject ObjectToFind;
-        public static WoWUnit NPCToFind;
-        public static WoWUnit SHMToFind;
-        public static List<WoWGameObject> ObjList;
-        public static List<WoWUnit> NPCList;
-        public static List<WoWUnit> SHMList;
+        public static void OGdiag(string message, params object[] args) { Logging.WriteDiagnostic(Colors.DeepSkyBlue, "[ObjectGatherer]: " + message, args); }
         public static uint[] Filterlist;
-        private static bool _miner;
-        private static bool _skinner;
-        private static bool _herber;
-        private static int _interactway;
-        private static readonly Stopwatch MyTimer = new Stopwatch();
-        private static readonly Stopwatch CheckPointTimer = new Stopwatch();
-        private static bool _initialized;
+        private LocalPlayer Me { get { return StyxWoW.Me; } }
+        private WoWPoint _LocationId = WoWPoint.Empty;
+        private WoWGameObject _ObjectToFind;
+        private WoWUnit _NPCToFind;
+        private WoWUnit _SHMToFind;
+        private WoWGameObject _ObjNext;
+        private WoWUnit _NPCNext;
+        private WoWUnit _SHMNext;
+        private bool _Miner;
+        private bool _Skinner;
+        private bool _Herber;
+        private int _Interactway;
+        private bool _Initialized;
+        private readonly Stopwatch _CheckPointTimer = new Stopwatch();
+        private Composite _BehaviorTreeHookObjectGatherer;
+        private readonly LocalBlacklist _ObjectBlacklist = new LocalBlacklist(TimeSpan.FromSeconds(30));
+        public delegate string ProvideStringDelegate(object context);
         #endregion
 
         #region Initialize
         public override void Initialize() {
-            if (_initialized) return;
-            _initialized = true;
+            _LocationId = WoWPoint.Empty;
+            _BehaviorTreeHookObjectGatherer = null;
+            if (_Initialized) return;
+            _Initialized = true;
             OGlog("Version " + Version + " Loaded.");
             Filterlist = UpdateFilterList();
             BotEvents.OnBotStarted += BotEvent_OnBotStarted;
             BotEvents.OnBotStopped += BotEvent_OnBotStopped;
-            if (Me.GetSkill(SkillLine.Mining).CurrentValue != 0) { _miner = true; }
-            if (Me.GetSkill(SkillLine.Skinning).CurrentValue != 0) { _skinner = true; }
-            if (Me.GetSkill(SkillLine.Herbalism).CurrentValue != 0) { _herber = true; }
+            if (Me.GetSkill(SkillLine.Mining).CurrentValue != 0) { _Miner = true; }
+            if (Me.GetSkill(SkillLine.Skinning).CurrentValue != 0) { _Skinner = true; }
+            if (Me.GetSkill(SkillLine.Herbalism).CurrentValue != 0) { _Herber = true; }
         }
         #endregion
 
         #region Dispose
         public override void Dispose() {
+            _LocationId = WoWPoint.Empty;
+            TreeHooks.Instance.RemoveHook("Loot_Main", _BehaviorTreeHookObjectGatherer);
+            _BehaviorTreeHookObjectGatherer = null;
         }
         #endregion
 
@@ -178,50 +207,327 @@ namespace ObjectGatherer {
         public override void OnButtonPress() { var GUI = new ObjectGatherer_Gui(); GUI.ShowDialog(); }
         #endregion
 
+        #region Behavior Tree
+        private Composite CreateBehaviorObjectGatherer() { 
+            return new PrioritySelector(
+                new Decorator(context => CanSaflyLootCheck(),
+                    new Sequence(
+                        new DecoratorContinue(context => _LocationId == WoWPoint.Empty,
+                            #region UpdateObjectList
+                            new Sequence(
+                                new Action(context => ObjectManager.Update()),
+                                new Action(context => _NPCNext = ObjectManager.GetObjectsOfType<WoWUnit>().Where(u => Filterlist.Contains(u.Entry) && u.CanSelect && !_ObjectBlacklist.Contains(u)).OrderBy(u => u.Distance).FirstOrDefault()),
+                                new Action(context => _ObjNext = ObjectManager.GetObjectsOfType<WoWGameObject>().Where(o => (o.Distance2D <= LootTargeting.LootRadius) && Filterlist.Contains(o.Entry) && o.CanUse() && !_ObjectBlacklist.Contains(o)).OrderBy(o => o.Distance).FirstOrDefault()),
+                                new Action(context => _SHMNext = ObjectManager.GetObjectsOfType<WoWUnit>().Where(s => s.CanSkin && s.Distance < 20 && !_ObjectBlacklist.Contains(s)).OrderBy(s => s.Distance).FirstOrDefault()),
+                                
+                                #region Search for Skinn-/Herb-/Minable NPC's
+                                new DecoratorContinue(context => ObjectGatherer_Settings.Instance.ShmcCb && _SHMNext != null && _LocationId == WoWPoint.Empty,
+                                    new Sequence(
+                                        #region Mineing
+                                        new DecoratorContinue(context => _SHMNext.SkinType == WoWCreatureSkinType.Rock && _Miner && _LocationId == WoWPoint.Empty,
+                                            new Sequence(
+                                                new DecoratorContinue(context => (!Navigator.CanNavigateFully(Me.Location, _SHMNext.Location)),
+                                                    new Sequence(
+                                                        new Action(context => _ObjectBlacklist.Add(_SHMNext, TimeSpan.FromSeconds(300))),
+                                                        new Action(context => _LocationId = WoWPoint.Empty)
+                                                    )
+                                                ),
+                                                new DecoratorContinue(context => (_SHMToFind != _SHMNext),
+                                                    new Sequence(
+                                                        new Action(context => OGlog("Moveing to Mine {0}", _SHMNext.Name)),
+                                                        new Action(context => _SHMToFind = _SHMNext),
+                                                        new Action(context => _Interactway = 3),
+                                                        new Action(context => WoWMovement.MoveStop()),
+                                                        new Action(context => _CheckPointTimer.Restart()),
+                                                        new Action(context => _LocationId = WoWMovement.CalculatePointFrom(_SHMNext.Location, 3))
+                                                    )
+                                                )
+                                            )
+                                        ),
+                                        #endregion
+
+                                        #region Herbing
+                                        new DecoratorContinue(context => _SHMNext.SkinType == WoWCreatureSkinType.Herb && _Herber && _LocationId == WoWPoint.Empty,
+                                            new Sequence(
+                                                new DecoratorContinue(context => (!Navigator.CanNavigateFully(Me.Location, _SHMNext.Location)),
+                                                    new Sequence(
+                                                        new Action(context => _ObjectBlacklist.Add(_SHMNext, TimeSpan.FromSeconds(300))),
+                                                        new Action(context => _LocationId = WoWPoint.Empty)
+                                                    )
+                                                ),
+                                                new DecoratorContinue(context => (_SHMToFind != _SHMNext),
+                                                    new Sequence(
+                                                        new Action(context => OGlog("Moveing to Herb {0}", _SHMNext.Name)),
+                                                        new Action(context => _SHMToFind = _SHMNext),
+                                                        new Action(context => _Interactway = 3),
+                                                        new Action(context => WoWMovement.MoveStop()),
+                                                        new Action(context => _CheckPointTimer.Restart()),
+                                                        new Action(context => _LocationId = WoWMovement.CalculatePointFrom(_SHMNext.Location, 3))
+                                                    )
+                                                )
+                                            )
+                                        ),
+                                        #endregion
+
+                                        #region Skinning
+                                        new DecoratorContinue(context => _SHMNext.SkinType == WoWCreatureSkinType.Leather && _Skinner && _LocationId == WoWPoint.Empty,
+                                            new Sequence(
+                                                new DecoratorContinue(context => (!Navigator.CanNavigateFully(Me.Location, _SHMNext.Location)),
+                                                    new Sequence(
+                                                        new Action(context => _ObjectBlacklist.Add(_SHMNext, TimeSpan.FromSeconds(300))),
+                                                        new Action(context => _LocationId = WoWPoint.Empty)
+                                                    )
+                                                ),
+                                                new DecoratorContinue(context => (_SHMToFind != _SHMNext),
+                                                    new Sequence(
+                                                        new Action(context => OGlog("Moveing to Skin {0}", _SHMNext.Name)),
+                                                        new Action(context => _SHMToFind = _SHMNext),
+                                                        new Action(context => _Interactway = 3),
+                                                        new Action(context => WoWMovement.MoveStop()),
+                                                        new Action(context => _CheckPointTimer.Restart()),
+                                                        new Action(context => _LocationId = WoWMovement.CalculatePointFrom(_SHMNext.Location, 3))
+                                                    )
+                                                )
+                                            )
+                                        )
+                                        #endregion
+                                    )
+                                ),
+                                #endregion
+
+                                #region Search for NPC
+                                new DecoratorContinue(context => _LocationId == WoWPoint.Empty && _NPCNext != null,
+                                    new Sequence(
+                                        new DecoratorContinue(context => ((!Navigator.CanNavigateFully(Me.Location, _NPCNext.Location)) && (!_NPCNext.InLineOfSight)),
+                                            new Sequence(
+                                                new DecoratorContinue(context => _NPCToFind != _NPCNext,
+                                                    new Sequence(
+                                                        new Action(context => _ObjectBlacklist.Add(_NPCNext, TimeSpan.FromSeconds(300))),
+                                                        new Action(context => _NPCToFind = _NPCNext)
+                                                    )
+                                                ),
+                                                new Action(context => _LocationId = WoWPoint.Empty)
+                                            )
+                                        ),
+                                        new DecoratorContinue(context => _NPCToFind != _NPCNext,
+                                            new Sequence(
+                                                new Action(context => OGlog("Moving to {0}, to interact with {1}.", _NPCNext.Location, _NPCNext.Name)),
+                                                new Action(context => _NPCToFind = _NPCNext),
+                                                new Action(context => _Interactway = 1),
+                                                new Action(context => WoWMovement.MoveStop()),
+                                                new Action(context => _CheckPointTimer.Restart()),
+                                                new Action(context => _LocationId = WoWMovement.CalculatePointFrom(_NPCNext.Location, 3))
+                                            )
+                                        )
+                                    )
+                                ),
+                                #endregion
+
+                                #region Search for Object
+                                new DecoratorContinue(context => _ObjNext != null && _ObjNext.Entry == 214388 && !AncientGuoLaiCacheKey(),
+                                    new Action(context => _LocationId = WoWPoint.Empty)
+                                ),
+                                new DecoratorContinue(context => _LocationId == WoWPoint.Empty && _ObjNext != null,
+                                    new Sequence(
+                                        new DecoratorContinue(context => !Navigator.CanNavigateFully(Me.Location, _ObjNext.Location) && !_ObjNext.InLineOfSight,
+                                            new Sequence(
+                                                new DecoratorContinue(context => _ObjectToFind != _ObjNext,
+                                                    new Sequence(
+                                                        new Action(context => OGlog("Blacklisting Object : " + _ObjNext)),
+                                                        new Action(context => _ObjectBlacklist.Add(_ObjNext, TimeSpan.FromSeconds(300))),
+                                                        new Action(context => _ObjectToFind = _ObjNext)
+                                                    )
+                                                ),
+                                                new Action(context => _LocationId = WoWPoint.Empty)
+                                            )
+                                        ),
+                                        new DecoratorContinue(context => _ObjectToFind != _ObjNext,
+                                            new Sequence(
+                                                new Action(context => OGlog("Moving to {0}, to pickup {1}.", _ObjNext.Location, _ObjNext.Name)),
+                                                new Action(context => _ObjectToFind = _ObjNext),
+                                                new Action(context => _Interactway = 2),
+                                                new Action(context => WoWMovement.MoveStop()),
+                                                new Action(context => _CheckPointTimer.Restart()),
+                                                new Action(context => _LocationId = WoWMovement.CalculatePointFrom(_ObjNext.Location, 3))
+                                            )
+                                        )
+                                    )
+                                )
+                                #endregion
+                            )
+                            #endregion
+                        ),
+                        new Decorator(context => _LocationId != WoWPoint.Empty,
+                            new Sequence(
+                                new DecoratorContinue(context => _CheckPointTimer.ElapsedMilliseconds < 30000,
+                                    new Sequence(
+                                        new DecoratorContinue(context => _LocationId.Distance(Me.Location) > 3,
+                                            #region MoveToObject
+                                            new Sequence(
+                                                new DecoratorContinue(context => !Me.IsMoving,
+                                                    new Sequence(
+                                                        new DecoratorContinue(context => _Interactway == 1,
+                                                            new Sequence(
+                                                                new DecoratorContinue(context => _NPCToFind.InLineOfSight,
+                                                                    new Action(context => Flightor.MoveTo(_LocationId))
+                                                                ),
+                                                                new DecoratorContinue(context => Navigator.CanNavigateFully(Me.Location, _LocationId),
+                                                                    new Action(context => Navigator.MoveTo(_LocationId))
+                                                                )
+                                                            )
+                                                        ),
+                                                        new DecoratorContinue(context => _Interactway == 2,
+                                                            new Sequence(
+                                                                new DecoratorContinue(context => _ObjectToFind.InLineOfSight,
+                                                                    new Action(context => Flightor.MoveTo(_LocationId))
+                                                                ),
+                                                                new DecoratorContinue(context => (Navigator.CanNavigateFully(Me.Location, _LocationId)),
+                                                                    new Action(context => Navigator.MoveTo(_LocationId))
+                                                                )
+                                                            )
+                                                        ),
+                                                        new DecoratorContinue(context => _Interactway == 3,
+                                                            new Sequence(
+                                                                new DecoratorContinue(context => _SHMToFind.InLineOfSight,
+                                                                    new Action(context => Flightor.MoveTo(_LocationId))
+                                                                ),
+                                                                new DecoratorContinue(context => (Navigator.CanNavigateFully(Me.Location, _LocationId)),
+                                                                    new Action(context => Navigator.MoveTo(_LocationId))
+                                                                )
+                                                            )
+                                                        )
+                                                    )
+                                                )
+                                            )
+                                            #endregion
+                                        ),
+                                        new DecoratorContinue(context => _LocationId.Distance(Me.Location) <= 3,
+                                            #region InteractWithObject
+                                            new Sequence(
+                                                new DecoratorContinue(context => _LocationId != WoWPoint.Empty,
+                                                    new Sequence(
+                                                        // If we are Mounted (and not in flightform) we need to Dismount.
+                                                        new DecoratorContinue(context => (!Me.HasAura(40120) && !Me.HasAura(33943) && Flightor.MountHelper.Mounted),
+                                                            new Sequence(
+                                                                new Action(context => WoWMovement.MoveStop()),
+                                                                new Action(context => Flightor.MountHelper.Dismount())
+                                                            )
+                                                        ),
+                                                        new Action(context => WoWMovement.MoveStop()),
+                                                        new WaitContinue(TimeSpan.FromMilliseconds(500), context => false, new ActionAlwaysSucceed()),
+                                                        // Interact with NPC
+                                                        new DecoratorContinue(context => _Interactway == 1,
+                                                            new Sequence(
+                                                                new Action(context => _NPCToFind.Interact()),
+                                                                new WaitContinue(TimeSpan.FromMilliseconds(500), context => false, new ActionAlwaysSucceed()),
+                                                                new Action(context => Lua.DoString("SelectGossipOption(1)")),
+                                                                new Action(context => _Interactway = 0),
+                                                                new Action(context => _LocationId = WoWPoint.Empty)
+                                                            )
+                                                        ),
+                                                        // Interact with Object
+                                                        new DecoratorContinue(context => _Interactway == 2,
+                                                            new Sequence(
+                                                                new Action(context => WoWMovement.MoveStop()),
+                                                                new WaitContinue(TimeSpan.FromMilliseconds(500), context => false, new ActionAlwaysSucceed()),
+                                                                new DecoratorContinue(context => !_ObjectToFind.InUse,
+                                                                    new Sequence(
+                                                                        new Action(context => _ObjectToFind.Interact()),
+                                                                        new WaitContinue(TimeSpan.FromMilliseconds(500), context => false, new ActionAlwaysSucceed())
+                                                                    )
+                                                                ),
+                                                                new Action(context => Lua.DoString("LootSlot(1)")),
+                                                                new WaitContinue(TimeSpan.FromMilliseconds(200), context => false, new ActionAlwaysSucceed()),
+                                                                new Action(context => Lua.DoString("ConfirmLootSlot(1)")),
+                                                                new WaitContinue(TimeSpan.FromMilliseconds(500), context => false, new ActionAlwaysSucceed()),
+                                                                new Action(context => Styx.CommonBot.Frames.LootFrame.Instance.Close()),
+                                                                new Action(context => _Interactway = 0),
+                                                                new Action(context => _LocationId = WoWPoint.Empty)
+                                                            )
+                                                        ),
+                                                        // Herb/Mine/Skin Corpses
+                                                        new DecoratorContinue(context => _Interactway == 3,
+                                                            new Sequence(
+                                                                new Action(context => WoWMovement.MoveStop()),
+                                                                new Action(context => _SHMToFind.Interact()),
+                                                                new WaitContinue(TimeSpan.FromMilliseconds(500), context => false, new ActionAlwaysSucceed()),
+                                                                new Action(context => Lua.DoString("LootSlot(1)")),
+                                                                new WaitContinue(TimeSpan.FromMilliseconds(500), context => false, new ActionAlwaysSucceed()),
+                                                                new Action(context => Styx.CommonBot.Frames.LootFrame.Instance.Close()),
+                                                                new Action(context => _Interactway = 0),
+                                                                new Action(context => _LocationId = WoWPoint.Empty)
+                                                            )
+                                                        )
+                                                    )
+                                                )
+                                            )
+                                            #endregion
+                                        )
+                                    )
+                                ),
+                                new DecoratorContinue(context => _CheckPointTimer.ElapsedMilliseconds > 30000,
+                                    new Sequence(
+                                        new Action(context => _LocationId = WoWPoint.Empty)
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            );
+        }
+        #endregion
+
         #region Pulse
         public override void Pulse() {
-            if (!_initialized || !CanSaflyLootCheck()) { return; }
-            if (CheckPointTimer.ElapsedMilliseconds > 30000) { LocationId = WoWPoint.Empty; }
-            if (LocationId == WoWPoint.Empty) { 
-                UpdateObjectList();
-                return;
+            if (_Initialized && _BehaviorTreeHookObjectGatherer == null) {
+                _BehaviorTreeHookObjectGatherer = CreateBehaviorObjectGatherer();
+                TreeHooks.Instance.AddHook("Loot_Main", _BehaviorTreeHookObjectGatherer);
             }
-            if (LocationId.Distance(Me.Location) > 3) {
-                MoveToObject();
-                return;
-            }
-            if (LocationId.Distance(Me.Location) <= 3) { InteractWithObject(); }
         }
         #endregion
 
         #region Ancient Guo-Lai Cache Key
-        private static bool AncientGuoLaiCacheKey() { return (Me.BagItems.FirstOrDefault(i => i.Entry == 87779) != null); }
+        private bool AncientGuoLaiCacheKey() { return (Me.BagItems.FirstOrDefault(i => i.Entry == 87779) != null); }
+        #endregion
+
+        #region LogMarker
+        // Use this in PrioritySelector containers...
+        public static Composite LogMarkerPs(ProvideStringDelegate messageDelegate) {
+            return new Action(context => {
+                Logging.Write(Colors.Fuchsia, messageDelegate(context));
+                return RunStatus.Failure;
+            });
+        }
+
+        // Use this in Sequence containers...
+        public static Composite LogMarkerSeq(ProvideStringDelegate messageDelegate) {
+            return new Action(context => {
+                Logging.Write(Colors.Fuchsia, messageDelegate(context));
+            });
+        }
         #endregion
 
         #region BotEvent_OnBotStart
-        private static void BotEvent_OnBotStarted(EventArgs args) {
-            LocationId = WoWPoint.Empty;
-        }
+        private void BotEvent_OnBotStarted(EventArgs args) { Initialize(); }
         #endregion
 
         #region BotEvent_OnBotStop
-        private static void BotEvent_OnBotStopped(EventArgs args) {
-            LocationId = WoWPoint.Empty;
-        }
+        private void BotEvent_OnBotStopped(EventArgs args) { Dispose(); }
         #endregion
 
         #region CanSaflyLootCheck
         public bool CanSaflyLootCheck() {
             if (Me.Combat || Me.IsActuallyInCombat) {
-                CheckPointTimer.Restart();
+                _CheckPointTimer.Restart();
                 return false;
             }
             if (ObjectManager.GetObjectsOfType<WoWUnit>().Any(unit => unit.Aggro || unit.PetAggro)) {
-                CheckPointTimer.Restart();
+                _CheckPointTimer.Restart();
                 return false;
             }
             if (Me.IsOnTransport || Me.IsGhost || Me.IsDead) {
-                LocationId = WoWPoint.Empty;
+                _LocationId = WoWPoint.Empty;
                 return false;
             }
             return true;
@@ -231,19 +537,19 @@ namespace ObjectGatherer {
         #region FilterList
 
         #region Ancient Guo-Lai Cache
-        private static readonly uint[] Filter_AGLC = {
+        public static readonly uint[] FilterAglc = {
             214388, // Ancient Guo-Lai Cache
         };
         #endregion
 
         #region Dark Soil
-        private static readonly uint[] Filter_DS = {
+        public static readonly uint[] FilterDs = {
             210565, // Dark Soil
         };
         #endregion
 
         #region Gold Coins
-        private static readonly uint[] Filter_GC = {
+        public static readonly uint[] FilterGc = {
             186633, // Gold Coins
             186634, // Gold Coins
             210894, // Gold Coins
@@ -253,7 +559,7 @@ namespace ObjectGatherer {
         #endregion
 
         #region Is Another Man's Treasure
-        private static readonly uint[] Filter_IAMT = {
+        public static readonly uint[] FilterIamt = {
             213363, // Wodin's Mantid Shanker
             213364, // Ancient Pandaren Mining Pick
             213366, // Ancient Pandaren Tea Pot (Grey trash worth 100G)
@@ -292,7 +598,7 @@ namespace ObjectGatherer {
         #endregion
 
         #region Is Another Man's Treasure NPC
-        private static readonly uint[] Filter_IAMTN = {
+        public static readonly uint[] FilterIamtn = {
             65552, // Glinting Rapana Whelk
             64272, // Jade Warrior Statue
             64004, // Ghostly Pandaren Fisherman
@@ -302,19 +608,19 @@ namespace ObjectGatherer {
         #endregion
 
         #region Netherwing Egg
-        private static readonly uint[] Filter_NE = {
+        public static readonly uint[] FilterNe = {
             185915, // Netherwing Egg
         };
         #endregion
 
         #region Onyx Egg
-        private static readonly uint[] Filter_OE = {
+        public static readonly uint[] FilterOe = {
             214945, // Onyx Egg
         };
         #endregion
 
         #region Treasure Chests
-        private static readonly uint[] Filter_TC = {
+        public static readonly uint[] FilterTc = {
             176944, // Old Treasure Chest (Scholomance Instance)
             179697, // Arena Treasure Chest (STV Arena)
             203090, // Sunken Treaure Chest
@@ -374,7 +680,14 @@ namespace ObjectGatherer {
         #endregion
 
         #region Quests
-        private static readonly uint[] Filter_Q = {
+        public static readonly uint[] FilterQ = {
+            #region Kor'kron items
+            97530, // Kor'kron Lumber
+            97543, // Kor'kron Stone
+            97544, // Kor'kron Oil
+            97545, // Kor'kron Meat
+            #endregion
+
             #region Paying Tribute (Niuzao Food Supply)
             212131, // Niuzao Food Supply
             212132, // Niuzao Food Supply
@@ -391,221 +704,56 @@ namespace ObjectGatherer {
         #region UpdateFilterList()
         public static uint[] UpdateFilterList() {
             var tmpList = new List<uint>();
-            if (ObjectGatherer_Settings.Instance.AGLC_CB) { tmpList.AddRange(Filter_AGLC); }
-            if (ObjectGatherer_Settings.Instance.DS_CB) { tmpList.AddRange(Filter_DS); }
-            if (ObjectGatherer_Settings.Instance.GC_CB) { tmpList.AddRange(Filter_GC); }
-            if (ObjectGatherer_Settings.Instance.IAMT_CB) { tmpList.AddRange(Filter_IAMT); }
-            if (ObjectGatherer_Settings.Instance.IAMTN_CB) { tmpList.AddRange(Filter_IAMTN); }
-            if (ObjectGatherer_Settings.Instance.NE_CB) { tmpList.AddRange(Filter_NE); }
-            if (ObjectGatherer_Settings.Instance.OE_CB) { tmpList.AddRange(Filter_OE); }
-            if (ObjectGatherer_Settings.Instance.TC_CB) { tmpList.AddRange(Filter_TC); }
-            if (ObjectGatherer_Settings.Instance.Q_CB) { tmpList.AddRange(Filter_Q); }
+            if (ObjectGatherer_Settings.Instance.AglcCb) { tmpList.AddRange(FilterAglc); }
+            if (ObjectGatherer_Settings.Instance.DsCb) { tmpList.AddRange(FilterDs); }
+            if (ObjectGatherer_Settings.Instance.GcCb) { tmpList.AddRange(FilterGc); }
+            if (ObjectGatherer_Settings.Instance.IamtCb) { tmpList.AddRange(FilterIamt); }
+            if (ObjectGatherer_Settings.Instance.IamtnCb) { tmpList.AddRange(FilterIamtn); }
+            if (ObjectGatherer_Settings.Instance.NeCb) { tmpList.AddRange(FilterNe); }
+            if (ObjectGatherer_Settings.Instance.OeCb) { tmpList.AddRange(FilterOe); }
+            if (ObjectGatherer_Settings.Instance.TcCb) { tmpList.AddRange(FilterTc); }
+            if (ObjectGatherer_Settings.Instance.QCb) { tmpList.AddRange(FilterQ); }
             return (tmpList.ToArray());
         }
         #endregion
 
         #endregion
-
-        #region InteractWithObject
-        private void InteractWithObject() {
-            if (_interactway == 0) { return; }
-            if (LocationId == WoWPoint.Empty) { return; }
-            if (!CanSaflyLootCheck()) { return; }
-            if (LocationId.Distance(Me.Location) > 3) { return; }
-            if (!Me.HasAura(40120) && !Me.HasAura(33943) && Flightor.MountHelper.Mounted) {
-                WoWMovement.MoveStop();
-                Flightor.MountHelper.Dismount(); // If we are Mounted (and not in flightform) we need to Dismount.
-            }
-            WoWMovement.MoveStop();
-            MyTimer.Restart();
-            while (MyTimer.IsRunning && MyTimer.ElapsedMilliseconds < 2500) {  }
-            switch (_interactway) {
-                case 1: // NPC
-                    NPCToFind.Interact();
-                    MyTimer.Restart();
-                    while (MyTimer.IsRunning && MyTimer.ElapsedMilliseconds < 5000) { }
-                    Lua.DoString("SelectGossipOption(1)");
-                    _interactway = 0;
-                    LocationId = WoWPoint.Empty;
-                    break;
-
-                case 2: // Object
-                    WoWMovement.MoveStop();
-                    MyTimer.Restart();
-                    while (ObjectToFind.CanUse() && CanSaflyLootCheck() && MyTimer.ElapsedMilliseconds < 3000) {
-                        if (!ObjectToFind.InUse) {
-                            ObjectToFind.Interact();
-                        }
-                        Lua.DoString("LootSlot(1)");
-                        Lua.DoString("ConfirmLootSlot(1)");
-                        Styx.CommonBot.Frames.LootFrame.Instance.Close();
-                        WoWMovement.MoveStop();
-                    }
-                    _interactway = 0;
-                    LocationId = WoWPoint.Empty;
-                    break;
-
-                case 3: // Herb/Mine/Skin Corpses
-                    WoWMovement.MoveStop();
-                    SHMToFind.Interact();
-                    MyTimer.Restart();
-                    while (SHMToFind.CanSkin && CanSaflyLootCheck() && MyTimer.ElapsedMilliseconds < 3000) {
-                        Lua.DoString("LootSlot(1)");
-                        Styx.CommonBot.Frames.LootFrame.Instance.Close();
-                        WoWMovement.MoveStop();
-                    }
-                    _interactway = 0;
-                    LocationId = WoWPoint.Empty;
-                    break;
-            }
-        }
-        #endregion
-
-        #region MoveToObject
-        private void MoveToObject() {
-            while ((LocationId.Distance(Me.Location) > 3) && (CanSaflyLootCheck())) {
-                switch (_interactway) {
-                    case 1 : // NPC
-                        if (!Me.IsMoving && Flightor.MountHelper.Mounted && NPCToFind.InLineOfSight) { Flightor.MoveTo(LocationId); }
-                        if (!Me.IsMoving && Navigator.CanNavigateFully(Me.Location, LocationId)) { Navigator.MoveTo(LocationId); }
-                        break;
-
-                    case 2 : // Object
-                        if (!Me.IsMoving && Flightor.MountHelper.Mounted && ObjectToFind.InLineOfSight) { Flightor.MoveTo(LocationId); }
-                        if (!Me.IsMoving && Navigator.CanNavigateFully(Me.Location, LocationId)) { Navigator.MoveTo(LocationId); }
-                        break;
-
-                    case 3: // Herb/Mine/Skin Corpses
-                        if (!Me.IsMoving && Flightor.MountHelper.Mounted && SHMToFind.InLineOfSight) { Flightor.MoveTo(LocationId); }
-                        if (!Me.IsMoving && Navigator.CanNavigateFully(Me.Location, LocationId)) { Navigator.MoveTo(LocationId); }
-                        break;
-                }
-            }
-        }
-        #endregion
-
-        #region UpdateObjectList
-        private static void UpdateObjectList() {
-            LocationId = WoWPoint.Empty;
-            ObjectManager.Update();
-            NPCList = ObjectManager.GetObjectsOfType<WoWUnit>().Where(u => Filterlist.Contains(u.Entry) && u.CanSelect)
-                      .OrderBy(u => u.Distance)
-                      .ToList();
-            ObjList = ObjectManager.GetObjectsOfType<WoWGameObject>()
-                      .Where(o => (o.Distance2D <= LootTargeting.LootRadius) && Filterlist.Contains(o.Entry) && o.CanUse())
-                      .OrderBy(o => o.Distance)
-                      .ToList();
-            SHMList = ObjectManager.GetObjectsOfType<WoWUnit>().Where(s => s.CanSkin && s.Distance < 20)
-                      .OrderBy(s => s.Distance)
-                      .ToList();
-
-            #region Search for Skinn-/Herb-/Minable NPC's
-            foreach (var s in SHMList) {
-                if (LocationId != WoWPoint.Empty) { return; }
-
-                #region Mineing
-                if ((ObjectGatherer_Settings.Instance.SHMC_CB) && (s.SkinType == WoWCreatureSkinType.Rock) && (_miner) && (LocationId == WoWPoint.Empty)) {
-                    if (!Navigator.CanNavigateFully(Me.Location, s.Location)) {
-                        LocationId = WoWPoint.Empty;
-                        return;
-                    }
-                    if (SHMToFind != s) {
-                        OGlog("Moveing to Mine {0}", s.Name);
-                        SHMToFind = s;
-                        _interactway = 3;
-                        WoWMovement.MoveStop();
-                        LocationId = WoWMovement.CalculatePointFrom(s.Location, 3);
-                        CheckPointTimer.Restart();
-                    }
-                }
-                #endregion
-
-                #region Herbing
-                if ((ObjectGatherer_Settings.Instance.SHMC_CB) && (s.SkinType == WoWCreatureSkinType.Herb) && (_herber) && (LocationId == WoWPoint.Empty)) {
-                    if (!Navigator.CanNavigateFully(Me.Location, s.Location)) {
-                        LocationId = WoWPoint.Empty;
-                        return;
-                    }
-                    if (SHMToFind != s) {
-                        OGlog("Moveing to Herb {0}", s.Name);
-                        SHMToFind = s;
-                        _interactway = 3;
-                        WoWMovement.MoveStop();
-                        LocationId = WoWMovement.CalculatePointFrom(s.Location, 3);
-                        CheckPointTimer.Restart();
-                    }
-                }
-                #endregion
-
-                #region Skinning
-                if ((ObjectGatherer_Settings.Instance.SHMC_CB) && (s.SkinType == WoWCreatureSkinType.Leather) && (_skinner) && (LocationId == WoWPoint.Empty)) {
-                    if (!Navigator.CanNavigateFully(Me.Location, s.Location)) {
-                        LocationId = WoWPoint.Empty;
-                        return;
-                    }
-                    if (SHMToFind != s) {
-                        OGlog("Moveing to Skin {0}", s.Name);
-                        SHMToFind = s;
-                        _interactway = 3;
-                        WoWMovement.MoveStop();
-                        LocationId = WoWMovement.CalculatePointFrom(s.Location, 3);
-                        CheckPointTimer.Restart();
-                    }
-                }
-                #endregion
-                
-            }
-            #endregion
-
-            #region Search for NPC
-            foreach (var u in NPCList) {
-                if (LocationId != WoWPoint.Empty) { return; }
-                if ((!Navigator.CanNavigateFully(Me.Location, u.Location)) && (!u.InLineOfSight)) {
-                    if (NPCToFind != u) {
-                        OGlog("Found {0} at {1}, but can't get to it.", u.Name, u.Location);
-                        NPCToFind = u;
-                    }
-                    LocationId = WoWPoint.Empty;
-                    return;
-                }
-                if (NPCToFind != u) {
-                    OGlog("Moving to {0}, to interact with {1}.", u.Location, u.Name);
-                    NPCToFind = u;
-                    _interactway = 1;
-                    WoWMovement.MoveStop();
-                    LocationId = WoWMovement.CalculatePointFrom(u.Location, 3);
-                    CheckPointTimer.Restart();
-                }
-            }
-            #endregion
-
-            #region Search for Object
-            foreach (var o in ObjList) {
-                if ((o.Entry == 214388) && (!AncientGuoLaiCacheKey())) { 
-                    LocationId = WoWPoint.Empty;
-                    return;
-                }
-                if (LocationId != WoWPoint.Empty) { return; }
-                if ((!Navigator.CanNavigateFully(Me.Location, o.Location)) && (!o.InLineOfSight)) {
-                    if (ObjectToFind != o) {
-                        OGlog("Found {0} at {1}, but can't get to it.", o.Name, o.Location);
-                        ObjectToFind = o;
-                    }
-                    LocationId = WoWPoint.Empty;
-                    return;
-                }
-                if (ObjectToFind != o) {
-                    OGlog("Moving to {0}, to pickup {1}.", o.Location, o.Name);
-                    ObjectToFind = o;
-                    _interactway = 2;
-                    WoWMovement.MoveStop();
-                    LocationId = WoWMovement.CalculatePointFrom(o.Location, 3);
-                    CheckPointTimer.Restart();
-                }
-            }
-            #endregion
-        }
-        #endregion
-
     }
+    #region LocalBlacklist
+    //
+    // This class is coded by Chinajade. I've just made some small modifications to suit my need.
+    //
+    public class LocalBlacklist {
+        public LocalBlacklist(TimeSpan maxSweepTime) { _SweepTimer = new WaitTimer(maxSweepTime) { WaitTime = maxSweepTime }; }
+
+        private readonly Dictionary<ulong, DateTime> _BlackList = new Dictionary<ulong, DateTime>();
+        private readonly WaitTimer _SweepTimer;
+
+        public void Add(ulong guid, TimeSpan timeSpan) {
+            RemoveExpired();
+            _BlackList[guid] = DateTime.Now.Add(timeSpan);
+        }
+
+        public void Add(WoWObject wowObject, TimeSpan timeSpan) { if (wowObject != null) { Add(wowObject.Guid, timeSpan); } }
+
+        public bool Contains(ulong guid) {
+            DateTime expiry;
+            if (_BlackList.TryGetValue(guid, out expiry)) { return (expiry > DateTime.Now); }
+            return false;
+        }
+
+        public bool Contains(WoWObject wowObject) { return (wowObject != null) && Contains(wowObject.Guid); }
+
+        public void RemoveExpired() {
+            if (_SweepTimer.IsFinished) {
+                DateTime now = DateTime.Now;
+                List<ulong> expiredEntries = (from key in _BlackList.Keys
+                                              where (_BlackList[key] < now)
+                                              select key).ToList();
+                foreach (var entry in expiredEntries) { _BlackList.Remove(entry); }
+                _SweepTimer.Reset();
+            }
+        }
+    }
+    #endregion
 }
