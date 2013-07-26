@@ -36,6 +36,7 @@ using System.Windows.Media;
 using Styx.Common;
 using Styx.CommonBot;
 using Styx.CommonBot.Profiles;
+using Styx.Pathing;
 using Styx.TreeSharp;
 using Styx.WoWInternals;
 using Styx.WoWInternals.WoWObjects;
@@ -70,6 +71,7 @@ namespace Styx.Bot.Quest_Behaviors {
         public int CheckRange { get; private set; }
         public string ProfileName { get; private set; }
         public string RemotePath { get; private set; }
+        public WoWPoint MyHotSpot = Me.Location;
 
         // Private variables for internal state
         private static bool _isBehaviorDone;
@@ -116,7 +118,15 @@ namespace Styx.Bot.Quest_Behaviors {
 
         #region Methods
         private bool CheckLevel() {
-            return Me.Level >= MinLevel && Me.GroupInfo.RaidMembers.All(a => a.ToPlayer() == null || (!a.ToPlayer().IsPet && (a.ToPlayer().Level >= MinLevel)));
+            var returnvalue = true;
+            var nummember = StyxWoW.Me.GroupInfo.RaidMembers.Count();
+            if (nummember == 0) { if (Me.Level < MinLevel) { return false; } }
+            if (nummember > 1) {
+                for (var i = 1; i <= nummember; i++) {
+                    if (Lua.GetReturnVal<int>("return (select(4, GetRaidRosterInfo(1)))", 0) < MinLevel) { returnvalue = false; }
+                }
+            }
+            return returnvalue;
         }
 
         private bool CheckPartyRange() {
@@ -174,7 +184,12 @@ namespace Styx.Bot.Quest_Behaviors {
                         new Sequence(
                             // Everyone isn't within interact range, lets wait abit before checking again.
                             new DecoratorContinue(context => !CheckPartyRange(),
-                                new WaitContinue(TimeSpan.FromMilliseconds(300), context => false, new ActionAlwaysSucceed())
+                                new Sequence(
+                                    new DecoratorContinue(context => (Me.Location.Distance(MyHotSpot) > Navigator.PathPrecision),
+                                        new Action(context => Navigator.MoveTo(MyHotSpot))
+                                    ),
+                                    new WaitContinue(TimeSpan.FromMilliseconds(300), context => false, new ActionAlwaysSucceed())
+                                )
                             ),
                             // Everyone is within interact range.
                             new DecoratorContinue(context => CheckPartyRange(),
