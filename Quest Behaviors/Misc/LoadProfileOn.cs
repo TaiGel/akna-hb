@@ -186,7 +186,14 @@ namespace Styx.Bot.Quest_Behaviors {
                             new DecoratorContinue(context => !CheckPartyRange(),
                                 new Sequence(
                                     new DecoratorContinue(context => (Me.Location.Distance(MyHotSpot) > Navigator.PathPrecision),
-                                        new Action(context => Navigator.MoveTo(MyHotSpot))
+                                        new Sequence(
+                                            new DecoratorContinue(context => Navigator.CanNavigateFully(Me.Location, MyHotSpot),
+                                                new Action(context => Navigator.MoveTo(MyHotSpot))
+                                            ),
+                                            new DecoratorContinue(context => !Navigator.CanNavigateFully(Me.Location, MyHotSpot),
+                                                new Action(context => Flightor.MoveTo(MyHotSpot))
+                                            )
+                                        )
                                     ),
                                     new WaitContinue(TimeSpan.FromMilliseconds(300), context => false, new ActionAlwaysSucceed())
                                 )
