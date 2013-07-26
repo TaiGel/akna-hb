@@ -123,7 +123,7 @@ namespace Styx.Bot.Quest_Behaviors {
             if (nummember == 0) { if (Me.Level < MinLevel) { return false; } }
             if (nummember > 1) {
                 for (var i = 1; i <= nummember; i++) {
-                    if (Lua.GetReturnVal<int>("return (select(4, GetRaidRosterInfo(1)))", 0) < MinLevel) { returnvalue = false; }
+                    if (Lua.GetReturnVal<int>("return (select(4, GetRaidRosterInfo(i)))", 0) < MinLevel) { returnvalue = false; }
                 }
             }
             return returnvalue;
