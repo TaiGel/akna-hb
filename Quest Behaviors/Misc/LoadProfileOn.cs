@@ -71,7 +71,6 @@ namespace Styx.Bot.Quest_Behaviors {
         public int CheckRange { get; private set; }
         public string ProfileName { get; private set; }
         public string RemotePath { get; private set; }
-        public WoWPoint MyHotSpot = Me.Location;
 
         // Private variables for internal state
         private static bool _isBehaviorDone;
@@ -85,6 +84,7 @@ namespace Styx.Bot.Quest_Behaviors {
         private String NewRemoteProfilePath {
             get { return (Path.Combine(RemotePath, ProfileName)); }
         }
+        public WoWPoint MyHotSpot = WoWPoint.Empty;
         #endregion
 
         #region Dispose
@@ -135,7 +135,7 @@ namespace Styx.Bot.Quest_Behaviors {
                     Logging.Write(Colors.LightBlue, "Can't scan party member, assuming member is too far away");
                     return false;
                 }
-                if (p.Name != Me.Name && WoWMovement.CalculatePointFrom(p.Location, 3).Distance(Me.Location) > p.InteractRange) {
+                if (p.Name != Me.Name && WoWMovement.CalculatePointFrom(p.Location, 0).DistanceSqr(Me.Location) > p.InteractRange) {
                     return false;
                 }
             }
@@ -162,6 +162,16 @@ namespace Styx.Bot.Quest_Behaviors {
         protected override Composite CreateBehavior() {
             return _Root ?? (_Root =
                 new PrioritySelector(context => !_isBehaviorDone,
+                    new Decorator(context => MyHotSpot == WoWPoint.Empty,
+                        new Sequence(
+                            new DecoratorContinue(context => Me.IsMoving,
+                                new WaitContinue(TimeSpan.FromMilliseconds(2000), context => false, new ActionAlwaysSucceed())
+                            ),
+                            new DecoratorContinue(context => !Me.IsMoving,
+                                new Action(context => MyHotSpot = Me.Location)
+                            )
+                        )
+                    ),
                     // Should we check for partymember minumum level ?
                     new Decorator(context => (MinLevel > 0),
                         new Sequence(
@@ -185,7 +195,7 @@ namespace Styx.Bot.Quest_Behaviors {
                             // Everyone isn't within interact range, lets wait abit before checking again.
                             new DecoratorContinue(context => !CheckPartyRange(),
                                 new Sequence(
-                                    new DecoratorContinue(context => (Me.Location.Distance(MyHotSpot) > Navigator.PathPrecision),
+                                    new DecoratorContinue(context => (Me.Location.DistanceSqr(MyHotSpot) > Navigator.PathPrecision),
                                         new Sequence(
                                             new DecoratorContinue(context => Navigator.CanNavigateFully(Me.Location, MyHotSpot),
                                                 new Action(context => Navigator.MoveTo(MyHotSpot))
