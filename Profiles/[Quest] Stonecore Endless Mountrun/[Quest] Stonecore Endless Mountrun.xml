@@ -1,0 +1,115 @@
+﻿<HBProfile creator="ShaneMag85 fix by AknA" version="1.8">
+	<Name>Stonecore Endless Mountrun ver 1.8</Name>
+	
+	<MinLevel>1</MinLevel>
+	<MaxLevel>92</MaxLevel>
+   
+	<MinDurability>0.001</MinDurability>
+	<MinFreeBagSlots>1</MinFreeBagSlots>
+	
+	<MailGrey>False</MailGrey>
+	<MailWhite>False</MailWhite>
+	<MailGreen>False</MailGreen>
+	<MailBlue>False</MailBlue>
+	<MailPurple>True</MailPurple>
+   
+	<SellGrey>True</SellGrey>
+	<SellWhite>True</SellWhite>
+	<SellGreen>True</SellGreen>
+	<SellBlue>True</SellBlue>
+	<SellPurple>False</SellPurple>
+   
+	<TargetElites>True</TargetElites>
+	
+	<AvoidMobs>
+        <Mob Name="Millhouse Manastorm" Entry="43391" />
+        <Mob Name="Corborus" Entry="43438" />
+    </AvoidMobs>
+
+	<ProtectedItems></ProtectedItems>
+	
+	<Blackspots></Blackspots>
+	
+	<QuestOrder>
+		<While Condition="true">
+			<If Condition="Me.ZoneId == 5042">
+				<If Condition="Me.LowestDurabilityPercent &lt;= 0.2" >
+					<CustomBehavior File="Message" Text="Need to Repair." LogColor="Red" /> 
+					<CustomBehavior File="ForcedMount" MountType="Flying" />
+					<CustomBehavior File="FlyTo" X="979.0538" Y="715.9204" Z="175.3008" />
+					<CustomBehavior File="FlyTo" X="798.7906" Y="477.6158" Z="-31.36609" />
+					<CustomBehavior File="FlyTo" X="988.0473" Y="519.4114" Z="-44.16424" />
+					<If Condition="Me.IsAlliance" >
+						<CustomBehavior File="FlyTo" X="1021.477" Y="551.6237" Z="-46.59705" />
+						<CustomBehavior File="FlyTo" X="1051.555" Y="633.8265" Z="-45.63194" />
+						<SetVendor>
+							<Vendors>
+								<Vendor Name="Dugsley Deepdelver" Entry="45294" Type="Repair" X="1052.99" Y="636.936" Z="-45.8708" />
+							</Vendors>
+						</SetVendor>
+						<CustomBehavior File="ForceSetVendor" DoSell="True" DoRepair="True" DoTrain="False" DoMail="False" /> 
+						<CustomBehavior File="Message" Text="Repair done, moving back." LogColor="Red" />
+						<CustomBehavior File="ForcedMount" MountType="Flying" />
+						<CustomBehavior File="FlyTo" X="1021.477" Y="551.6237" Z="-46.59705" />
+					</If>
+					<If Condition="Me.IsHorde" >
+						<CustomBehavior File="FlyTo" X="1035.286" Y="502.3434" Z="-42.11368" />
+						<CustomBehavior File="FlyTo" X="1090.118" Y="438.3675" Z="-45.82044" />
+						<SetVendor>
+							<Vendors>
+								<Vendor Name='Rixi "The Driller" Bombdigger' Entry="45293" Type="Repair" X="1091.19" Y="436.332" Z="-45.96806" />
+							</Vendors>
+						</SetVendor>
+						<CustomBehavior File="ForceSetVendor" DoSell="True" DoRepair="True" DoTrain="False" DoMail="False" /> 
+						<CustomBehavior File="Message" Text="Repair done, moving back." LogColor="Red" />
+						<CustomBehavior File="ForcedMount" MountType="Flying" />
+						<CustomBehavior File="FlyTo" X="1035.286" Y="502.3434" Z="-42.11368" />
+					</If>
+					<CustomBehavior File="FlyTo" X="988.0473" Y="519.4114" Z="-44.16424" />
+					<CustomBehavior File="FlyTo" X="798.7906" Y="477.6158" Z="-31.36609" />
+					<CustomBehavior File="FlyTo" X="979.0538" Y="715.9204" Z="175.3008" />
+				</If>
+				<CustomBehavior File="FlyTo" X="1023.928" Y="645.3463" Z="156.6734" />
+				<CustomBehavior File="RunMacro" Macro="/script SetDungeonDifficultyID(1)" />
+				<CustomBehavior File="RunMacro" Macro="/script ResetInstances()" />
+				<CustomBehavior File="Misc\InInstance" X="1030.038" Y="610.5" Z="158.672" /> <!-- Enters instance if not already inside -->
+				<CustomBehavior File="WaitTimer" WaitTime="12000" />
+			</If>
+			<If Condition="Me.ZoneId == 5042">
+				<CustomBehavior File="ForcedMount" MountType="Flying" />
+				<CustomBehavior File="FlyTo" X="1023.928" Y="645.3463" Z="156.6734" />
+				<CustomBehavior File="WaitTimer" WaitTime="60000" /> <!-- Waits one minute in case we have entered too many instances -->
+				<CustomBehavior File="Misc\InInstance" X="1030.038" Y="610.5" Z="158.672" /> <!-- Enters instance if not already inside -->
+			</If>
+			<If Condition="Me.ZoneId == 5088" >
+				<CustomBehavior File="Misc\InstanceTimer" Timer="Start" />
+				<CustomBehavior File="UserSettings" LootMobs="False" PullDistance="30" KillBetweenHotspots="True" LogoutForInactivity="False" />				
+				<RunTo X="902.09"   Y="981.547"  Z="316.8098" /> 	<!-- millhouse 1st pack -->
+				<RunTo X="918.4323" Y="944.8698" Z="318.5662" /> 	<!-- Adds on the right after 1st pack -->
+				<RunTo X="977.2128" Y="895.1407" Z="306.3294" /> 	<!-- Millhouse 2nd Pack -->
+				<RunTo X="1049.829" Y="871.4506" Z="295.0067" /> 	<!-- Millhouse 3rd Pack -->
+				<RunTo X="1153.565" Y="915.2497" Z="285.0145" /> 	<!-- Avoids Corborus -->
+				<RunTo X="1158.645" Y="972.028"  Z="280.9546" /> 	<!-- Approx 1st giant location -->
+				<RunTo X="1182.125" Y="1014.271" Z="272.1429" /> 	<!-- Flayers on right -->                               
+				<RunTo X="1182.125" Y="1014.271" Z="272.1429" /> 	<!-- 2nd Giant + Flayers -->
+				<RunTo X="1185.909" Y="1086.67"  Z="264.1817" /> 	<!-- End of cave -->
+				<RunTo X="1259.036" Y="1216.693" Z="247.5407" /> 	<!-- Runs to Slabhide Spawn -->
+
+				<CustomBehavior File="WaitTimer" WaitTime="23000" />
+				<RunTo X="1282.70" Y="1229.77" Z="247.07" />
+				<CustomBehavior File="RunMacro" Macro="/tar slabhide" NumOfTimes="1" WaitTime="1000" />
+				<CustomBehavior File="RunMacro" Macro="/startattack"  NumOfTimes="1" WaitTime="1000" />
+				<RunTo X="1274.842" Y="1195.187" Z="247.6823" />
+				<CustomBehavior File="WaitTimer" WaitTime="30000" />
+				<CustomBehavior File="UserSettings" LootMobs="True" PullDistance="1" KillBetweenHotspots="True" LogoutForInactivity="False" />
+				<RunTo X="1313.26" Y="1236.833" Z="247.2859" />
+				<CustomBehavior File="InteractWith" MobId="51397" NumOfTimes="1" /> <!-- Uses portal -->
+				<CustomBehavior File="UserSettings" LootMobs="False" PullDistance="30" KillBetweenHotspots="True" LogoutForInactivity="False" />
+				<RunTo X="851.052" Y="986.474" Z="317.266" /> <!-- Makes sure we get back to entrance in case portal farked up -->
+				<CustomBehavior File="Misc\InstanceTimer" Timer="Check" />
+				<CustomBehavior File="Misc\InInstance" X="812.9809" Y="986.2" Z="325.3748" /> <!-- Exits Instance -->
+				<CustomBehavior File="WaitTimer" WaitTime="12000" />	
+			</If>
+		</While>	
+	</QuestOrder>
+</HBProfile>
