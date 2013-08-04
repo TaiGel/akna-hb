@@ -1372,7 +1372,7 @@ local function CreateWhisperDefineFrame()
 	SGI_Whisper.status = {}
 	for i = 1,6 do
 		SGI_Whisper.status[i] = {}
-		SGI_Whisper.status[i].box = CreateFrame("Frame")
+		SGI_Whisper.status[i].box = CreateFrame("Frame",nil,SGI_Whisper)
 		SGI_Whisper.status[i].box:SetWidth(170)
 		SGI_Whisper.status[i].box:SetHeight(18)
 		SGI_Whisper.status[i].box:SetFrameStrata("HIGH")
