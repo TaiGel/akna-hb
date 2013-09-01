@@ -69,7 +69,7 @@ namespace Styx.Bot.Quest_Behaviors {
                 case WoWClass.Druid:        return 8921;
                 case WoWClass.Hunter:       return 1978;
                 case WoWClass.Mage:         return 30455;
-                case WoWClass.Monk:         return 117952;
+                case WoWClass.Monk:         return 115098;
                 case WoWClass.Paladin:      return 20271;
                 case WoWClass.Priest:       return 589;
                 case WoWClass.Rogue:        return 121733;
@@ -106,6 +106,7 @@ namespace Styx.Bot.Quest_Behaviors {
 											new Action(context => Lua.DoString(string.Format("CastSpellByID({0})",GetSpellIDByClass()))),
                                             new WaitContinue(TimeSpan.FromMilliseconds(300), context => Me.IsCasting, new ActionAlwaysSucceed()),
                                             new WaitContinue(TimeSpan.FromMilliseconds(600), context => !Me.IsCasting, new ActionAlwaysSucceed()),
+											new WaitContinue(TimeSpan.FromMilliseconds(1000), context => false, new ActionAlwaysSucceed()),
                                             new Action(context => _isBehaviorDone = true)
 										)
 									),
