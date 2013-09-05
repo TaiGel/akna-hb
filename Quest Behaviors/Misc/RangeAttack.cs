@@ -71,7 +71,7 @@ namespace Styx.Bot.Quest_Behaviors {
                 case WoWClass.Hunter:       return 1978;
                 case WoWClass.Mage:         return 30455;
                 case WoWClass.Paladin:      return 20271;
-                case WoWClass.Priest:       return 589;
+                case WoWClass.Priest:       return 73510;
                 case WoWClass.Rogue:        return 121733;
                 case WoWClass.Shaman:       return 8042;
                 case WoWClass.Warlock:      return 172;
