@@ -133,13 +133,9 @@ namespace Styx.Bot.Quest_Behaviors {
                 _partyMembers = new PartyMembers[CountGroupMembers()];
                 for (var i = 0; i < CountGroupMembers(); i++) { _partyMembers[i] = new PartyMembers("", 0, false); }
             }
-            Chat.Addon += ChatAddon;
             BotEvents.OnBotStop += BotEvents_OnBotStop;
+            Chat.Addon += ChatAddon;
             Lua.DoString("RegisterAddonMessagePrefix('QBCEL')");
-            if (!GetGroupMemberNames()) {
-                Logging.Write("[CheckExpansionLevel] : You're not in a group.");
-                _isBehaviorDone = true;
-            }
             Logging.WriteDiagnostic("Init done.");
             _Init = true;
         }
