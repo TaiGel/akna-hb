@@ -13,6 +13,7 @@
 //
 // This would load a localy stored profile IF everyone in your group has atleast ExpansionLevel:4 (Mists of Pandaria)
 // http://wowprogramming.com/docs/api/GetAccountExpansionLevel
+// Disabled until I can find out a safer way to to it.
 // <CustomBehavior File="Misc\LoadProfileOn" ChkExp="4" ProfileName="[Rep] Nat Pagle.xml" />
 //
 // This would load a remote profile from my SVN.
@@ -61,7 +62,8 @@ namespace Styx.Bot.Quest_Behaviors {
             try {
                 MinLevel = GetAttributeAsNullable("MinLevel", false, ConstrainAs.Milliseconds, null) ?? 0;
                 CheckRange = GetAttributeAsNullable("CheckRange", false, ConstrainAs.Milliseconds, null) ?? 0;
-                ChkExp = GetAttributeAsNullable("ChkExp", false, ConstrainAs.Milliseconds, null) ?? 0;
+                // Disabled until I can find out a safer way to to it.
+                // ChkExp = GetAttributeAsNullable("ChkExp", false, ConstrainAs.Milliseconds, null) ?? 0;
                 ProfileName = GetAttributeAs("ProfileName", false, ConstrainAs.StringNonEmpty, null) ?? "";
                 RemotePath = GetAttributeAs(@"RemotePath", false, ConstrainAs.StringNonEmpty, null) ?? "";
             }
@@ -78,7 +80,8 @@ namespace Styx.Bot.Quest_Behaviors {
         // Attributes provided by caller
         public int MinLevel { get; private set; }
         public int CheckRange { get; private set; }
-        public int ChkExp { get; private set; }
+        // Disabled until I can find out a safer way to to it.
+        // public int ChkExp { get; private set; }
         public string ProfileName { get; private set; }
         public string RemotePath { get; private set; }
 
@@ -88,7 +91,8 @@ namespace Styx.Bot.Quest_Behaviors {
         private bool _IsDisposed;
         private Composite _Root;
         public static LocalPlayer Me { get { return StyxWoW.Me; } }
-        private static PartyMembers[] _partyMembers;
+        // Disabled until I can find out a safer way to to it.
+        // private static PartyMembers[] _partyMembers;
         private String CurrentProfile { get { return (ProfileManager.XmlLocation); } }
         private String NewLocalProfilePath { get { return (Path.Combine(Path.GetDirectoryName(CurrentProfile), ProfileName)); } }
         private String NewRemoteProfilePath { get { return (Path.Combine(RemotePath, ProfileName)); } }
@@ -108,7 +112,8 @@ namespace Styx.Bot.Quest_Behaviors {
 
                 // Clean up unmanaged resources (if any) here...
                 BotEvents.OnBotStop -= BotEvents_OnBotStop;
-                Chat.Addon -= ChatAddon;
+                // Disabled until I can find out a safer way to to it.
+                // Chat.Addon -= ChatAddon;
                 _isBehaviorDone = false;
                 _Init = false;
 
@@ -129,24 +134,29 @@ namespace Styx.Bot.Quest_Behaviors {
         #region Methods
         #region Init
         private void Init() {
+            // Disabled until I can find out a safer way to to it.
+            /*
             if (CountGroupMembers() > 1) {
                 _partyMembers = new PartyMembers[CountGroupMembers()];
                 for (var i = 0; i < CountGroupMembers(); i++) { _partyMembers[i] = new PartyMembers("", 0, false); }
             }
-            BotEvents.OnBotStop += BotEvents_OnBotStop;
             Chat.Addon += ChatAddon;
             Lua.DoString("RegisterAddonMessagePrefix('QBCEL')");
+            */
+            BotEvents.OnBotStop += BotEvents_OnBotStop;
             Logging.WriteDiagnostic("Init done.");
             _Init = true;
         }
         #endregion
 
         #region AreWeDone
-        private static bool AreWeDone() { return _partyMembers.All(t => t.Known); }
+        // Disabled until I can find out a safer way to to it.
+        // private static bool AreWeDone() { return _partyMembers.All(t => t.Known); }
         #endregion
 
         #region DoAllHaveExp
-        private bool DoAllHaveExp() { return _partyMembers.All(t => t.ExpansionLevel >= ChkExp); }
+        // Disabled until I can find out a safer way to to it.
+        // private bool DoAllHaveExp() { return _partyMembers.All(t => t.ExpansionLevel >= ChkExp); }
         #endregion
 
         #region CountGroupMember
@@ -154,6 +164,8 @@ namespace Styx.Bot.Quest_Behaviors {
         #endregion
 
         #region GetGroupMemberNames
+        // Disabled until I can find out a safer way to to it.
+        /*
         private static bool GetGroupMemberNames() {
             if (CountGroupMembers() > 1) {
                 for (var i = 1; i <= CountGroupMembers(); i++) {
@@ -162,6 +174,7 @@ namespace Styx.Bot.Quest_Behaviors {
             }
             return CountGroupMembers() != 0;
         }
+        */
         #endregion
 
         #region CheckLevel
@@ -193,14 +206,19 @@ namespace Styx.Bot.Quest_Behaviors {
         #endregion
 
         #region CheckExpansion
+        // Disabled until I can find out a safer way to to it.
+        /*
         private static void CheckExpansions() {
             var CEL = Lua.GetReturnVal<int>("return GetAccountExpansionLevel()", 0);
             Logging.WriteDiagnostic("Sending AddonMessage.");
             Lua.DoString(string.Format("SendAddonMessage('QBCEL', '{0}', 'PARTY')", CEL));
         }
+        */
         #endregion
 
         #region ChatTrigger
+        // Disabled until I can find out a safer way to to it.
+        /*
         private static void ChatTrigger(string prefix, string message, string sender) {
             if (prefix != "QBCEL") return;
             var explvl = Convert.ToInt16(message);
@@ -210,10 +228,12 @@ namespace Styx.Bot.Quest_Behaviors {
                 Logging.WriteDiagnostic("Player : {0} has ExpansionLevel : {1}", sender, message);
             }
         }
+        */
         #endregion
 
         #region ChatAddon
-        private static void ChatAddon(Chat.ChatAddonEventArgs e) { ChatTrigger(e.Prefix, e.Message, e.Sender); }
+        // Disabled until I can find out a safer way to to it.
+        // private static void ChatAddon(Chat.ChatAddonEventArgs e) { ChatTrigger(e.Prefix, e.Message, e.Sender); }
         #endregion
 
         #region UrlExists
@@ -310,6 +330,8 @@ namespace Styx.Bot.Quest_Behaviors {
                     #endregion
 
                     #region ChkExp
+                    // Disabled until I can find out a safer way to to it.
+                    /*
                     new Decorator(context => (ChkExp != 0),
                         new Sequence(
                             new DecoratorContinue(context => !AreWeDone(),
@@ -333,6 +355,7 @@ namespace Styx.Bot.Quest_Behaviors {
                             )
                         )
                     ),
+                    */
                     #endregion
 
                     #region RemotePath
@@ -414,7 +437,10 @@ namespace Styx.Bot.Quest_Behaviors {
         }
         #endregion
     }
+
     #region PartyMembers Class
+    // Disabled until I can find out a safer way to to it.
+    /*
     public class PartyMembers {
         public string Name { get; set; }
         public int ExpansionLevel { get; set; }
@@ -426,5 +452,6 @@ namespace Styx.Bot.Quest_Behaviors {
             Known = known;
         }
     }
+    */
     #endregion
 }
